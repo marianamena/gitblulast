@@ -1,0 +1,50 @@
+
+
+This information is also available at: 
+
+	/u01/app/oracle/middleware/install/setupinfo.txt
+
+See the following for information pertaining to your Enterprise Manager installation:
+
+
+Use the following URL to access:
+
+	1. Enterprise Manager Cloud Control URL: https://clouddb:7803/em
+	2. Admin Server URL: https://clouddb:7102/console
+
+The following details need to be provided while installing an additional OMS:
+
+	1. Admin Server Host Name: clouddb
+	2. Admin Server Port: 7102
+
+You can find the details on ports used by this deployment at : /u01/app/oracle/middleware/install/portlist.ini
+
+
+ NOTE:
+ An encryption key has been generated to encrypt sensitive data in the Management Repository. If this key is lost, all encrypted data in the Repository becomes unusable. 
+
+ A backup of the OMS configuration is available in /u01/app/oracle/gc_inst/em/EMGC_OMS1/sysman/backup on host clouddb. See Cloud Control Administrators Guide for details on how to back up and recover an OMS.
+
+ NOTE: This backup is valid only for the initial OMS configuration. For example, it will not reflect plug-ins installed later, topology changes like the addition of a load balancer, or changes to other properties made using emctl or emcli. Backups should be created on a regular basis to ensure they capture the current OMS configuration. Use the following command to backup the OMS configuration:
+/u01/app/oracle/middleware/bin/emctl exportconfig oms -dir <backup dir> 
+
+#################################################################################################################################
+
+36645488    The Plugin or Core Component "" for which the patch is intended is not deployed in your Enterprise Manager system.
+32968787    The Plugin or Core Component "oracle.sysman.bda.discovery.plugin with version 13.5.1.0.0" for which the patch is intended is not deployed in your Enterprise Manager system.
+36891601    The Plugin or Core Component "" for which the patch is intended is not deployed in your Enterprise Manager system.
+33715858    The Plugin or Core Component "oracle.sysman.bda.agent.plugin with version 13.5.1.0.0" for which the patch is intended is not deployed in your Enterprise Manager system.
+36891589    The Plugin or Core Component "" for which the patch is intended is not deployed in your Enterprise Manager system.
+35883342    The Plugin or Core Component "oracle.sysman.vt.agent.plugin with version 13.5.1.0.0" for which the patch is intended is not deployed in your Enterprise Manager system.
+36761619    The Plugin or Core Component "" for which the patch is intended is not deployed in your Enterprise Manager system.
+36335420    The Plugin or Core Component "" for which the patch is intended is not deployed in your Enterprise Manager system.
+33586851    The Plugin or Core Component "oracle.sysman.emfa.discovery.plugin with version 13.5.1.0.0" for which the patch is intended is not deployed in your Enterprise Manager system.
+36465441    The Plugin or Core Component "" for which the patch is intended is not deployed in your Enterprise Manager system.
+36489152    The Plugin or Core Component "" for which the patch is intended is not deployed in your Enterprise Manager system.
+
+
+./emctl set property -sysman_pwd syspassOracle123 -name oracle.sysman.db.ena_flash.perf_home -value true
+
+./emctl set property -sysman_pwd syspassOracle123 -name oracle.sysman.db.ena_flash.ash_anlyt -value true
+
+./emctl set property -sysman_pwd syspassOracle123  -name oracle.sysman.db.ena_flash.sql_mon -value true
