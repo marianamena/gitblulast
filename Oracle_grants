@@ -1,0 +1,2 @@
+select 'grant select on '||owner||'.'||table_name||' to CIO;' FROM dba_tables WHERE owner='KYC_CORE' ;
+select 'grant select on '||owner||'.'||view_name||' to CIO;' FROM dba_views WHERE owner='KYC_CORE' ;
