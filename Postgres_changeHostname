@@ -1,0 +1,32 @@
+1.hostnamectl set-hostname new-hostname
+2.hostnamectl :C-IS-PR-InCnfDB
+3.cat /etc/hosts :
+127.0.0.1       localhost C-IS-PR-InCnfDB
+192.168.1.100   debian-11.3     debian-11
+
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+
+4.reboot
+
+5.no change for listen_addresses = '*' in postgres.config
+
+
+
+local   all             postgres                                peer
+
+
+local   all             all                                     peer
+host    all             all             0.0.0.0/0               md5
+host    all             all             127.0.0.1/32            md5
+host    all             all             ::1/128                 scram-sha-256
+local   replication     all                                     peer
+host    replication     all             127.0.0.1/32            md5
+host    replication     all             ::1/128                 md5
+
+no need to change:
+
+6.no need to change crontab job
