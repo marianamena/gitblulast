@@ -1,0 +1,17 @@
+Doc for Hash:
+
+
+for SHA256 , we have to use standard_hash:
+
+create view as select  STANDARD_HASH(savings_account_id,'SHA256') , other columns  from table;
+
+then:grant select on view to user;
+
+for redact ,we cant use  SHA256,then insead we use standard_hash
+
+also there is another way like ora_hash ,but it depend on which type of hashing ,the customer need ,the way of hashing will be different.
+
+example:
+
+create view as select ora_hash(savings_account_id) as hash_sav_id_ora_hash , STANDARD_HASH(savings_account_id,'MD5') as hash_sav_id_md5_hash from mifostenantdefault.m_savings_account_transaction;
+
