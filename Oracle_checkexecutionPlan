@@ -1,0 +1,5 @@
+sELECT * 
+FROM   TABLE(DBMS_XPLAN.DISPLAY);
+
+
+explain plan for select * from TOP_UP.DD_CONTRACT_AMOUNT_CHANGE_LOGS
