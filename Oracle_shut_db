@@ -3,3 +3,14 @@ oracle: shutdown immediate   with alert
 grid:crsctl stop resource -all
 
 root: poweroff
+
+
+1.there was no active and inactive session from app.(checked)
+2.in gurad:alter database recover managed standby database cancel; (10.6.100.25)
+3.in 100.15 with grid : crsctl stop resource -all
+4.in 100.15 with root shutdown
+
+
+alter database recover managed standby database cancel;
+alter database open;
+alter database recover managed standby database using current logfile disconnect from session;
