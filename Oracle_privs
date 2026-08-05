@@ -1,0 +1,1 @@
+select owner,grantee,table_name,privilege,type from dba_tab_privs  where owner='BLACKLIST'
