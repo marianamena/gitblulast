@@ -1,0 +1,24 @@
+WITH date_partition AS (SELECT table_name,
+                               partition_name,
+                               TO_DATE(substr(
+                                               extractvalue(
+                                                       dbms_xmlgen.getxmltype(
+                                                                   'select high_value FROM USER_TAB_PARTITIONS WHERE table_name = '''
+                                                                   || t.table_name
+                                                                   || ''' and PARTITION_NAME = '''
+                                                                   || t.partition_name
+                                                                   || ''''), '//text()'
+                                                   ), 10, 12
+                                           ), 'YYYY-MM-DD') AS high_value_t
+                        FROM all_tab_partitions t
+                        WHERE table_owner = 'CORE_ETL'
+                          AND table_name = 'FACT_TRANSACTIONS'
+                        order by high_value_t DESC
+                            )
+select table_name,
+       partition_name,
+       'alter table ' || TABLE_NAME || ' drop partition (' || PARTITION_NAME || ') update indexes;' DROP_QUERY,
+       high_value_t -1 AS G_DATE,
+       to_char(high_value_t -1, 'yyyy-mm-dd', 'nls_calendar=persian') AS P_DATE
+from date_partition
+where high_value_t < sysdate - 10;
