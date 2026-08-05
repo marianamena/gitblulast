@@ -1,0 +1,7 @@
+select thread#,sequence#,blocks*block_size/1024/1024 MB,(next_time-first_time)*86400
+sec, (blocks*block_size/1024/1024)/((next_time-first_time)*86400) "MB/s",first_time,next_time from
+v$archived_log
+where ((next_time-first_time)*86400<>0)
+and first_time between to_date('2023/11/05 08:00:00','YYYY/MM/DD HH24:MI:SS')
+and to_date('2023/11/05 20:00:00','YYYY/MM/DD HH24:MI:SS')
+and dest_id=2 order by first_time;
