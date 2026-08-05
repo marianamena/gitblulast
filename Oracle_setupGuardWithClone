@@ -1,0 +1,123 @@
+setup Guard with clone from primary:
+
+kolan hame chi ro ba fedg3 k hamone k clone gerefti mizani bad in k tamom shod dbca mikoni va drop mikoni database ro ba dbca(vaghti ham drop mikoni bayad hamoni l clone gerefti ro drop koni yani fedg3 ro )
+
+
+
+clone from another serever(database) and config gurad and start the guard:
+
+
+1. first run lsscsi --scsi_id
+
+to find out all scasi disk 
+then go to /etc/udev/rules.d
+vi 99-oracle-asmdevices.rules
+
+begheir az disk os bayad baghiye disk haro add koni ba id(check with lsblk to find out os disks)
+id haro bayad toye result bezani
+
+
+
+
+3.CHANGE HOSTNAME IN GRID INFRASTRUCTURE
+
+
+###bayad ba usere root HAS ra deconfig konim:
+sh $GRID_HOME/crs/install/roothas.sh -deconfig -force
+
+sample:sh /u01/app/grid/product/19.3/grid/crs/install/roothas.sh -deconfig -force
+
+inja hostname ro bayad avaz koni ham 
+
+
+####change hostname in os with hostnamectl:
+hostnamectl set-hostname <new_hostname>
+
+
+and also /etc/hosts ,reboot nade!!!!
+
+
+###sepas bayad ba usere root reconfig konim:
+Please run <Grid infrastructure Oracle Home>/crs/install/roothas.sh
+
+
+###sepas bayad ba usere oracle be vasileye dastoore srvctl database man ra add konim:
+srvctl add database -db <db_unique_name> -oraclehome <oracle_home> -spfile <spfile_location> -pwfile <passwordfile_location> -dbname <db_name> -instance <instance_name>
+
+
+###sepas bayad ba usere grid dastoore zir ra bezanim:
+<Grid Infrastructure Oracle Home>/bin/crsctl modify resource "ora.cssd" -init -attr "AUTO_START=1"  -unsupported
+
+
+###sepas bayad ba usere grid ba dastoorate zir service HAS ra stop va start konim:
+crsctl stop has
+crsctl start has
+
+
+###sepas bayad service CSS va HAS ra motabeghe zir check konim:
+<Grid Infrastructure Oracle Home>/bin/crsctl check has
+
+<Grid Infrastructure Oracle Home>/bin/crsctl check css
+
+<Grid Infrastructure Oracle Home>/bin/ crsctl stat resource
+
+<Grid Infrastructure Oracle Home>/bin/crsctl stat res -t
+
+###sepas bayad ba usere grid ba dastoore zir listener ra add konim(besazim.) (mitavanim inkar ra ba usere grid ba NETCA niz anjam dahim.):
+srvctl add listener -listener listener
+
+
+
+###sepas ba usere grid dar masire $GRID_HOME/dbs bayad file init+ASM.ora ra ba parameter haye zir ke dakhelash migozarim besazim:
+
+
+asm_diskgroups= DATA,REDO,ARCHIVE
+asm_diskstring= '/dev/*'  ◄= use the existing asm_diskstring value. This can be found with "asmcmd dsget" command.
+instance_type='asm'
+large_pool_size=12M
+
+
+###sepas bayad ba usere grid ba dastoore zir asm instance ra be asm add konim:
+<Grid Infrastructure Oracle Home>/bin/srvctl add asm 
+
+
+###sepas bayad instance asm ra ba dastoore zir ba usere grid auto start konim:
+<Grid Infrastructure Oracle Home>/bin/crsctl modify resource "ora.asm" -init -attr "AUTO_START=1"  -unsupported
+
+
+
+###baraye anke motmaen shavim disk ha be vasileye processe kfid discover mishavand bayad ba usere grid dastoore zir ra bezanim:
+kfod asm_diskstring='/dev/*' disks=all
+
+
+
+###sepas bayad instance asm ra ba dastoore zir bala biavarim:
+login as grid
+sqlplus / as sysasm
+startup pfile=/u01/app/grid/product/19.3/grid/dbs/init+ASM.ora;
+
+
+###sepas bayad be sqlplus asm ba dastoore zir vasl shavim va spfile ra az pfile besazim:
+###ghabl az inkar bayad masire spfile ra dar asm ba usere grid modify konim:
+srvctl modify asm -spfile +DATA/asm/asmparameterfile/asm_spfile.ora###sepas vaghti dastoore zir ra mizanim be soorate automatic asm parameter file ra dar masire bala misazad.
+sqlplus / as sysasm
+create spfile from pfile ;
+
+
+###sepas bayad ba dastoore listener ra ke add kardim be asm anra beshnasanim:
+srvctl modify asm -listener listener
+
+###sepas bayad ba usere grid service haye has ra stop va start konim va bebinim bedoone moshkel bala miayad ya kheir:
+<Grid Infrastructure Oracle Home>/bin/crsctl  stop has
+
+<Grid Infrastructure Oracle Home>/bin/crsctl  start has
+
+<Grid Infrastructure Oracle Home>/bin/crsctl  stat res
+
+<Grid Infrastructure Oracle Home>/bin/crsctl  stat res -t
+
+
+
+
+after change .bash_profile in grid and oracle
+
