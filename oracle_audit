@@ -1,0 +1,2 @@
+check auditfile:
+select * from v$xml_audit_trail;
