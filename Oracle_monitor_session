@@ -1,0 +1,33 @@
+select d.username ,c.*  from (SELECT a.SAMPLE_ID ,
+       a.SAMPLE_TIME ,
+       a.user_id ,
+       a.MACHINE,
+       a.PROGRAM,
+       a.module,
+       a.session_id,
+       a.SESSION_SERIAL#,
+       a.sql_id,
+       a.sql_opname,
+       b.SQL_FULLTEXT,
+       b.last_load_time ,
+       b.last_active_time,
+       a.sql_plan_operation,
+       a.event,
+       a.wait_class,
+       a.SESSION_STATE,
+       a.time_waited,
+       a.blocking_session_status,
+       a.blocking_session,
+       a.blocking_session_serial#,
+       a.blocking_inst_id
+  FROM dba_hist_active_sess_history  a
+       LEFT JOIN gv$sqlarea b ON a.SQL_ID = b.SQL_ID
+ WHERE     a.sql_id LIKE 'c1ngh2mggy3tf'
+      AND a.session_type LIKE 'FOREGROUND'
+       AND a.sample_time > TIMESTAMP '2023-07-25 15:30:00.000'
+       AND a.sample_time < TIMESTAMP '2023-07-25 17:30:00.000'
+       AND a.session_state LIKE 'WAITING'
+      )c
+ left join dba_users d
+ on c.user_id = d.user_id 
+ order by c.time_waited desc;
