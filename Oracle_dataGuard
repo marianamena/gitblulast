@@ -1,0 +1,101 @@
+primary :proddb(unique_name:proddb)  hostname: prod server
+standby :proddb (unique_name:proddb_stb) hostname:dev server
+
+
+changes on Primary:
+1.primary database must be in archive log mode:
+
+shut immediate;
+startup mount;
+alter database archivelog;
+alter database open;
+archive log list;
+
+2. enable force logging:
+
+alter database force logging;
+select name,force_logging from v$database;
+
+
+3.standby file managment parameter:
+
+alter system set standby_file_managment='AUTO';
+
+4. first check number of log file in primary and also size,then add number+1 log file for standby.
+
+select group#,member from v$logfile;
+alter database add standby logfile group 11('/u01/....../...log') isze 50m;
+
+5.create password file for standby database:( it should be done in primary)
+alter system set remote_login_passwordfile=exclusive scope=spfile
+restart the db 
+orapwd file=$ORACLE_HOME/dbs/orapwdproddb password=sys force=y ( age bashe replace mikone)
+
+6. check db_unique_name in primary
+show parameter unique_name;
+
+7.check parameter db_recovery_file_dest_size;
+if needed,increase it.
+alter system set db_recoery_file_dest_size=400g;
+
+8.check parameter db_recovery_file_dest
+
+
+____________________________________________________________________________________________________
+
+ON STANDBY:
+1. create vm for standby with oracle linux installed
+2.install oracle but dont create database.
+3.set up network between primary and standby.
+4.check the listener in primary( up or not) ,copy file listener.ora in standby and then change the host in file(sid should be the same ,dont change it)
+go to $ORACLE_HOME/network/admin/
+vi listener.ora
+copy the listener.ora in standby (change ip )
+lsnrctl start listener
+
+5.check and change tnsnames.ora in primary and stanby.add connection name of std in primary (service_name =sid name)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
