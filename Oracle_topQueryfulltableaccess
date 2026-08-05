@@ -1,0 +1,44 @@
+select * from dba_hist_sqltext
+DESC dba_hist_sqltext
+
+
+
+
+SELECT sp.sql_id
+,sp.object_owner
+,sp.object_name
+,sa.sql_text as sqltext
+,sa.sql_fulltext AS sql_fulltext
+,sa.executions as no_of_full_scans
+,tbl.row_num
+,tbl.blocks
+,tbl.buff_pool
+FROM v$sql_plan sp
+LEFT JOIN v$sqlarea sa
+ON sa.address = sp.address
+AND sa.hash_value = sp.hash_value
+--
+JOIN (SELECT table_name
+      ,owner
+      ,num_rows AS row_num
+      ,blocks
+      ,buffer_pool AS buff_pool
+      FROM dba_tables
+      WHERE 1 = 1) tbl
+ON tbl.table_name = sp.object_name
+AND tbl.owner = sp.object_owner
+WHERE 1=1
+AND operation = 'TABLE ACCESS'
+AND options = 'FULL'
+AND tbl.row_num >= 50000
+
+
+ORDER BY no_of_full_scans DESC
+
+select * from MIFOSTENANTDEFAULT.APAM_VIEW
+
+AND object_owner = '' -- for a particular user (or comment out to get all)
+
+
+and sql_text like '%APAM_VIEW%'
+AND object_owner = 'MIFOSTENANTDEFAULT'
