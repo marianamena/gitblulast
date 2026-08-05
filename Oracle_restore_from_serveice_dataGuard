@@ -1,0 +1,330 @@
+###baraye recover kardane yek physical standby database ke az primary aghab oftade ast va archivelog ha ra ham dar primary be har dalili nadarim bayad marhale be marhale az raveshe zir estefade konim:
+###ebteda bayad dar database standby ba dastoore zir processe MRP ra paeen biavarim:
+
+alter database recover managed standby database cancel;
+
+###sepas bayad ba dastoorate zir standby database ra be halate mount biavarim:
+shutdown immediate ;
+startup mount ;
+
+
+###sepas bayad ba dastoore zir standby database ra recover konim:
+rman target /
+recover standby database from service <tns_name_of_source_db> ;
+###NOKATE GHABELE TAVAJOH DAR DASTOORE BALA:
+###ba ejraye dastoore bala bar rooye standby database be tartib marahele zir ettefagh mioftad(dar dele dasoore recover mavarede zir vojood darad:):
+restore standby controlfile from service <tns_name_of_source_db> ;
+alter database mount standby database ;
+alter system set standby_file_management=manual ;
+set newname for tempfile 1 to
+"+DATA/BLUDR/TEMPFILE/temp_new.1678.1226707991";
+set newname for clone tempfile 2 to new;
+set newname for clone tempfile 11 to new;
+set newname for clone tempfile 12 to new;
+set newname for clone tempfile 13 to new;
+set newname for clone tempfile 14 to new;
+set newname for clone tempfile 15 to new;
+set newname for clone tempfile 16 to new;
+switch tempfile all;
+set newname for datafile 1 to
+"+DATA/BLUDR/DATAFILE/system.346.1203767219";
+set newname for datafile 2 to
+"+DATA/BLUDR/DATAFILE/users.347.1203767219";
+set newname for datafil 3 to
+"+DATA/BLUDR/DATAFILE/sysaux.348.1203767221";
+set newname for datafile 4 to
+"+DATA/BLUDR/DATAFILE/undotbs1.349.1203767221";
+set newname for datafile 5 to
+"+DATA/BLUDR/DATAFILE/undotbs2.350.1203767221";
+set newname for datafile 7 to
+"+DATA/BLUDR/DATAFILE/users.351.1203767221";
+set newname for datafile 8 to
+"+DATA/BLUDR/DATAFILE/mlf_m_saving_tbs.886.1208851921";
+set newname for datafile 9 to
+"+DATA/BLUDR/DATAFILE/xstream_adm_tbs.353.1203767727";
+set newname for datafile 10 to new;
+.
+.
+.
+restore from service 'bluracdg' datafile
+10, 25, 94, 95, 179, 191, 275, 309, 333;
+===================================================
+###natijeye dastoore bala chizi shabihe zir ast:
+channel ORA_DISK_1: starting datafile backup set restore
+channel ORA_DISK_1: using network backup set from service bluracdg
+channel ORA_DISK_1: specifying datafile(s) to restore from backup set
+channel ORA_DISK_1: restoring datafile 00010 to +DATA
+channel ORA_DISK_2: starting datafile backup set restore
+channel ORA_DISK_2: using network backup set from service bluracdg
+channel ORA_DISK_2: specifying datafile(s) to restore from backup set
+channel ORA_DISK_2: restoring datafile 00025 to +DATA
+channel ORA_DISK_3: starting datafile backup set restore
+channel ORA_DISK_3: using network backup set from service bluracdg
+channel ORA_DISK_3: specifying datafile(s) to restore from backup set
+channel ORA_DISK_3: restoring datafile 00094 to +DATA
+channel ORA_DISK_4: starting datafile backup set restore
+channel ORA_DISK_4: using network backup set from service bluracdg
+channel ORA_DISK_4: specifying datafile(s) to restore from backup set
+channel ORA_DISK_4: restoring datafile 00095 to +DATA
+channel ORA_DISK_5: starting datafile backup set restore
+channel ORA_DISK_5: using network backup set from service bluracdg
+channel ORA_DISK_5: specifying datafile(s) to restore from backup set
+channel ORA_DISK_5: restoring datafile 00179 to +DATA
+channel ORA_DISK_6: starting datafile backup set restore
+channel ORA_DISK_6: using network backup set from service bluracdg
+channel ORA_DISK_6: specifying datafile(s) to restore from backup set
+channel ORA_DISK_6: restoring datafile 00191 to +DATA
+channel ORA_DISK_7: starting datafile backup set restore
+channel ORA_DISK_7: using network backup set from service bluracdg
+channel ORA_DISK_7: specifying datafile(s) to restore from backup set
+channel ORA_DISK_7: restoring datafile 00275 to +DATA
+channel ORA_DISK_8: starting datafile backup set restore
+channel ORA_DISK_8: using network backup set from service bluracdg
+channel ORA_DISK_8: specifying datafile(s) to restore from backup set
+channel ORA_DISK_8: restoring datafile 00039 to +DATA
+channel ORA_DISK_9: starting datafile backup set restore
+channel ORA_DISK_9: using network backup set from service bluracdg
+channel ORA_DISK_9: specifying datafile(s) to restore from backup set
+channel ORA_DISK_9: restoring datafile 00033 to +DATA
+
+channel ORA_DISK_9: restore complete, elapsed time: 00:00:25
+channel ORA_DISK_2: restore complete, elapsed time: 00:00:43
+channel ORA_DISK_9: restore complete, elapsed time: 00:06:37
+channel ORA_DISK_3: restore complete, elapsed time: 00:01:34
+channel ORA_DISK_7: restore complete, elapsed time: 00:06:36
+channel ORA_DISK_1: restore complete, elapsed time: 00:07:47
+channel ORA_DISK_8: restore complete, elapsed time: 00:09:26
+channel ORA_DISK_5: restore complete, elapsed time: 00:12:07
+channel ORA_DISK_4: restore complete, elapsed time: 00:16:58
+channel ORA_DISK_6: restore complete, elapsed time: 01:08:29
+
+Finished restore at 17-MAY-26
+
+
+catalog datafilecopy "+DATA/BLUDR/DATAFILE/system.346.1203767219",
+"+DATA/BLUDR/DATAFILE/users.347.1203767219",
+"+DATA/BLUDR/DATAFILE/sysaux.348.1203767221",
+"+DATA/BLUDR/DATAFILE/undotbs1.349.1203767221",
+"+DATA/BLUDR/DATAFILE/undotbs2.350.1203767221",
+"+DATA/BLUDR/DATAFILE/users.351.1203767221",
+"+DATA/BLUDR/DATAFILE/mif_m_saving_tbs.886.1208851921",
+"+DATA/BLUDR/DATAFILE/xstream_adm_tbs.353.1203767727",
+"+DATA/BLUDR/DATAFILE/account_tbs.355.1203767739",
+"+DATA/BLUDR/DATAFILE/mif_m_saving_tbs.1304.1220551899",
+"+DATA/BLUDR/DATAFILE/tbs_loan.325.1216691237",
+"+DATA/BLUDR/DATAFILE/ssd_tbs.358.1208768253",
+"+DATA/BLUDR/DATAFILE/ssd_tbs.958.1209726603",
+"+DATA/BLUDR/DATAFILE/ssd_tbs.511.1205120616",
+"+DATA/BLUDR/DATAFILE/mif_m_saving_tbs.866.1228353791",
+"+DATA/BLUDR/DATAFILE/ssd_tbs.362.1211299936",
+"+DATA/BLUDR/DATAFILE/party_tbs.363.1203769349",
+"+DATA/BLUDR/DATAFILE/ssd_tbs.958.1209726603",
+"+DATA/BLUDR/DATAFILE/ssd_tbs.734.1211299975",
+"+DATA/BLUDR/DATAFILE/psumr_tbs.363.1203769349",
+"+DATA/BLUDR/DATAFILE/users.367.1203769379",
+"+DATA/BLUDR/DATAFILE/ssd_tbs.370.1209769295",
+"+DATA/BLUDR/DATAFILE/paya_tbs.366.1203769734",
+"+DATA/BLUDR/DATAFILE/tbs_loan.365.1216691289",
+"+DATA/BLUDR/DATAFILE/mif_m_saving_tbs.6262.1221489875",
+"+DATA/BLUDR/DATAFILE/ss_orachk.2955.1205991235",
+"+DATA/BLUDR/DATAFILE/mif_m_saving_tbs.324.1216691237",
+"+DATA/BLUDR/DATAFILE/icps_tbs.355.1205117996",
+"+DATA/BLUDR/DATAFILE/icps_tbs.421.1211299633",
+"+DATA/BLUDR/DATAFILE/pusm_tbs.325.1205991185",
+"+DATA/BLUDR/DATAFILE/mif_m_saving_tbs.970.1208767625",
+"+DATA/BLUDR/DATAFILE/tbs_sav_tbs.74.1211069195",
+"+DATA/BLUDR/DATAFILE/tbs_1087.1204795253",
+"+DATA/BLUDR/DATAFILE/mif_m_saving_tbs.383.1203771369",
+"+DATA/BLUDR/DATAFILE/account_tbs.383.1203771439",
+"+DATA/BLUDR/DATAFILE/users.384.1203772202",
+"+DATA/BLUDR/DATAFILE/mif_sav_acc_tbs.385.1203772203";
+.
+.
+.
++DATA/BLUDR/DATAFILE/mif_m_saving_tbs.10050.123902497",
++DATA/BLUDR/DATAFILE/transfer_tbs.10077.123970615",
++DATA/BLUDR/DATAFILE/ssd_tbs.1143.1206115245",
++DATA/BLUDR/DATAFILE/tbs_loan.9855.1232970633",
++DATA/BLUDR/DATAFILE/mif_m_saving_tbs.1141.1206274559",
++DATA/BLUDR/DATAFILE/ssd_tbs.1140.1206274945",
++DATA/BLUDR/DATAFILE/mif_m_saving_tbs.9736.1233086129",
++DATA/BLUDR/DATAFILE/tbs_loan.1138.1206317207",
++DATA/BLUDR/DATAFILE/transfer_tbs.9762.1233086169",
++DATA/BLUDR/DATAFILE/tbs_loan.10073.1233086199",
++DATA/BLUDR/DATAFILE/tbs_9692.1233127659";
+switch datafile all;
+recover database from service <tns_name_of_source_db>;
+==============================================================
+***dar in marhale out put rman chizi manande zir mishavad:
+channel ORA_DISK_14: starting incremental datafile backup set restore
+channel ORA_DISK_14: using network backup set from service bluracdg
+destination for restore of datafile 00038: +DATA/BLUDR/DATAFILE/mif_m_saving_tbs.382.1203771369
+channel ORA_DISK_6: restore complete, elapsed time: 00:01:12
+channel ORA_DISK_6: starting incremental datafile backup set restore
+channel ORA_DISK_6: using network backup set from service bluracdg
+destination for restore of datafile 00039: +DATA/BLUDR/DATAFILE/account_tbs.383.1203771439
+channel ORA_DISK_11: restore complete, elapsed time: 00:06:08
+channel ORA_DISK_11: starting incremental datafile backup set restore
+channel ORA_DISK_11: using network backup set from service bluracdg
+destination for restore of datafile 00040: +DATA/BLUDR/DATAFILE/users.384.1203772203
+channel ORA_DISK_2: restore complete, elapsed time: 00:01:04
+channel ORA_DISK_2: starting incremental datafile backup set restore
+channel ORA_DISK_2: using network backup set from service bluracdg
+destination for restore of datafile 00041: +DATA/BLUDR/DATAFILE/mif_sav_acc_tbs.385.1203772203
+channel ORA_DISK_7: restore complete, elapsed time: 00:01:03
+channel ORA_DISK_7: starting incremental datafile backup set restore
+channel ORA_DISK_7: using network backup set from service bluracdg
+destination for restore of datafile 00042: +DATA/BLUDR/DATAFILE/sysaux.386.1203772263
+channel ORA_DISK_9: restore complete, elapsed time: 00:03:08
+channel ORA_DISK_9: starting incremental datafile backup set restore
+channel ORA_DISK_9: using network backup set from service bluracdg
+destination for restore of datafile 00043: +DATA/BLUDR/DATAFILE/ssd_tbs.387.1203772547
+channel ORA_DISK_8: restore complete, elapsed time: 00:02:22
+channel ORA_DISK_8: starting incremental datafile backup set restore
+channel ORA_DISK_8: using network backup set from service bluracdg
+destination for restore of datafile 00044: +DATA/BLUDR/DATAFILE/ssd_tbs.388.1203772935
+channel ORA_DISK_7: restore complete, elapsed time: 00:00:51
+channel ORA_DISK_7: starting incremental datafile backup set restore
+channel ORA_DISK_7: using network backup set from service bluracdg
+destination for restore of datafile 00045: +DATA/BLUDR/DATAFILE/ssd_tbs.389.1203773367
+channel ORA_DISK_6: restore complete, elapsed time: 00:02:04
+channel ORA_DISK_6: starting incremental datafile backup set restore
+channel ORA_DISK_6: using network backup set from service bluracdg
+destination for restore of datafile 00046: +DATA/BLUDR/DATAFILE/ssd_tbs.390.1203773711
+channel ORA_DISK_9: restore complete, elapsed time: 00:01:16
+channel ORA_DISK_9: starting incremental datafile backup set restore
+channel ORA_DISK_9: using network backup set from service bluracdg
+destination for restore of datafile 00047: +DATA/BLUDR/DATAFILE/orchid_tbs.391.1203775635
+channel ORA_DISK_8: restore complete, elapsed time: 00:01:26
+channel ORA_DISK_8: starting incremental datafile backup set restore
+channel ORA_DISK_8: using network backup set from service bluracdg
+destination for restore of datafile 00048: +DATA/BLUDR/DATAFILE/tbs_loan.538.12
+channel ORA_DISK_12: restore complete, elapsed time: 00:06:35
+destination for restore of datafile 00052: +DATA/BLUDR/DATAFILE/transfer_tbs.10073.1233086199
+channel ORA_DISK_13: restore complete, elapsed time: 00:02:07
+channel ORA_DISK_13: starting incremental datafile backup set restore
+channel ORA_DISK_13: using network backup set from service bluracdg
+destination for restore of datafile 00053: +DATA/BLUDR/DATAFILE/tbs_loan.9692.1233127659
+channel ORA_DISK_10: restore complete, elapsed time: 00:41:57
+channel ORA_DISK_8: restore complete, elapsed time: 00:28:06
+channel ORA_DISK_13: restore complete, elapsed time: 00:03:46
+channel ORA_DISK_3: restore complete, elapsed time: 00:02:09
+channel ORA_DISK_14: restore complete, elapsed time: 00:14:25
+channel ORA_DISK_6: restore complete, elapsed time: 00:16:39
+channel ORA_DISK_7: restore complete, elapsed time: 00:16:49
+channel ORA_DISK_1: restore complete, elapsed time: 00:17:41
+channel ORA_DISK_4: restore complete, elapsed time: 00:30:01
+channel ORA_DISK_5: restore complete, elapsed time: 00:07:32
+channel ORA_DISK_12: restore complete, elapsed time: 00:29:13
+channel ORA_DISK_2: restore complete, elapsed time: 00:28:19
+channel ORA_DISK_9: restore complete, elapsed time: 00:35:45
+channel ORA_DISK_11: restore complete, elapsed time: 00:34:30
+
+starting media recovery
+
+archived log for thread 1 with sequence 262091 is already on disk as file +DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262091.3610.1233508861
+archived log for thread 1 with sequence 262090 is already on disk as file +DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262090.3599.1233509179
+archived log for thread 1 with sequence 262093 is already on disk as file +DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262093.3592.1233509405
+archived log for thread 1 with sequence 262094 is already on disk as file +DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262094.3594.1233509621
+archived log for thread 1 with sequence 262095 is already on disk as file +DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262095.3590.1233509823
+archived log for thread 1 with sequence 262096 is already on disk as file +DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262096.3588.1233510065
+archived log for thread 1 with sequence 262097 is already on disk as file +DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262097.3582.1233510311
+archived log for thread 1 with sequence 262098 is already on disk as file +DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262098.3579.1233510549
+archived log for thread 1 with sequence 262099 is already on disk as file +DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262099.3575.1233510789
+archived log for thread 1 with sequence 262100 is already on disk as file +DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262100.3573.1233511025
+archived log for thread 3 with sequence 253736 is already on disk as file +DATA/BLUDR/ARCHIVELOG/2026_05_18/thread_3_seq_253736.3392.1233554361
+archived log for thread 3 with sequence 253737 is already on disk as file +DATA/BLUDR/ARCHIVELOG/2026_05_18/thread_3_seq_253737.3389.1233554661
+archived log for thread 3 with sequence 253738 is already on disk as file +DATA/BLUDR/ARCHIVELOG/2026_05_18/thread_3_seq_253738.3398.1233554961
+archived log for thread 3 with sequence 253739 is already on disk as file +DATA/BLUDR/ARCHIVELOG/2026_05_18/thread_3_seq_253739.3403.1233555261
+
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262091.3610.1233508861 thread=1 sequence=262091
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_3_seq_253566.3598.1233508778 thread=3 sequence=253566
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_3_seq_253565.3593.1233509037 thread=3 sequence=253565
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_2_seq_254570.3592.1233509179 thread=2 sequence=254570
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262092.3599.1233509179 thread=1 sequence=262092
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_3_seq_253567.3591.1233509371 thread=3 sequence=253567
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262093.3592.1233509405 thread=1 sequence=262093
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_3_seq_253568.3590.1233509621 thread=3 sequence=253568
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262094.3594.1233509621 thread=1 sequence=262094
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_3_seq_253569.3588.1233509823 thread=3 sequence=253569
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262095.3590.1233509823 thread=1 sequence=262095
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_3_seq_253570.3588.1233510065 thread=3 sequence=253570
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262096.3588.1233510065 thread=1 sequence=262096
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_3_seq_253571.3583.1233510357 thread=3 sequence=253571
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_3_seq_253572.3579.1233510571 thread=3 sequence=253572
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262097.3582.1233510311 thread=1 sequence=262097
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_3_seq_253573.3574.1233510875 thread=3 sequence=253573
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262098.3579.1233510549 thread=1 sequence=262098
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_3_seq_253574.3576.1233510835 thread=3 sequence=253574
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262099.3575.1233510789 thread=1 sequence=262099
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_3_seq_253575.3571.1233511085 thread=3 sequence=253575
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_1_seq_262100.3573.1233511025 thread=1 sequence=262100
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_17/thread_3_seq_253573.3574.12335111135 thread=3 sequence=253573
+.
+.
+.
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_18/thread_1_seq_262335.3478.1233561411 thread=1 sequence=262335
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_18/thread_2_seq_254755.3481.1233561555 thread=2 sequence=254755
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_18/thread_3_seq_253760.3476.1233561559 thread=3 sequence=253760
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_18/thread_1_seq_262336.3480.1233561711 thread=1 sequence=262336
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_18/thread_2_seq_254756.3482.1233561855 thread=2 sequence=254756
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_18/thread_3_seq_253761.3485.1233561861 thread=3 sequence=253761
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_18/thread_1_seq_262337.3483.1233562011 thread=1 sequence=262337
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_18/thread_2_seq_254757.3484.1233562155 thread=2 sequence=254757
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_18/thread_3_seq_253762.3487.1233562159 thread=3 sequence=253762
+archived log file name=+DATA/BLUDR/ARCHIVELOG/2026_05_18/thread_1_seq_262338.3491.1233562311 thread=1 sequence=262338
+media recovery complete, elapsed time: 01:57:21
+For record type DATAFILE COPY RECIDS from 1391 to 1392 are re-used before resync
+Finished recover at 18-MAY-26
+Finished recover at 18-MAY-26
+RMAN> exit
+
+
+
+###sepas bad az payane recovery bayad ba dastoore zir standby database ra be halate consistentn biavarim(halate consistent yani amaliate recover archivedlog ha ta jaee anjam shavad ke database betavanad az halate mount be open beresad va hengate open kardan khataye datafile felan need more recovery nakhorim.)
+
+
+ALTER DATABASE RECOVER MANAGED STANDBY DATABASE UNTIL CONSISTENT;
+alter database open read only ;
+###az anjaee ke ebtedaye in farayand be soorate automatic parameter standby_file_management az AUTO be MANUAL taghir mikonad hatman ghablm az bala avardane MRP in parameter ra az MANUAL be AUTO taghir dahim:
+alter system set standby_file_management=AUTO scope=both sid='*';
+###sepas ba dastoore zir real time recovery ra faal mikonim:
+
+alter database recover managed standby database using current logfile disconnect from session delay ;
+
+--------------------------------------
+###NOKATE GHABELE TAVAJOH DAR IN FARAYAND:
+###agar dar entehaye run shodane recover standby database from service ke archivedlog ha ra apply mikonad be har dalili be khata khordim mitavanim archivelog ha ra ba haman dastoore bala avaradane MRP ke dastoore zir mishavad archivedlog ha ra apply konim:
+alter database recover managed standby database using current logfile disconnect from session nodelay ;
+--------------------------------------
+###NOKATE GHABELE TAVAJOH DAR IN FARAYAND:
+###hamantor ke midanid dar shorooe in farayand in dastoor , parametere standby_file_management ra az AUTO be MANUAL taghir midahad.agar hengame ejraye in dastoor dar database primary datafile add shavad momken ast dar zamane apply archivelog marboot be an zaman dar standby database ba khataye zir movajeh shavim:
+Errors in file /u01/app/oracle/diag/rdbms/bludr/bludr/trace/bludr_mz00_11356.trc:
+ORA-01110: data file 309: '/u01/app/oracle/product/19.3/dbhome_1/dbs/UNNAMED00309'
+ORA-01565: error in identifying file '/u01/app/oracle/product/19.3/dbhome_1/dbs/UNNAMED00309'
+ORA-27037: unable to obtain file status
+Linux-x86_64 Error: 2: No such file or directory
+Additional information: 7
+2026-05-17T17:15:43.472097+03:30
+
+###baraye halle in khata bayad shomareye datafilei ke bar rooye an khata migirim ra az matne khata be dast biavarim ke dar mesale bala adade 309 mibashad.
+###sepas bayad name daghighe in datafile ra dar database primary ba estefade az selecte zir be dast biavarim:
+select file#,name from v$datafile where file#=309 ;
+###hamantor ke dar natijeye selecte zir mibinim tarikhe creation_time in datafile ehtemalan dar zamani boode ke amaliate recover standby database from service anjam mishode ast.
+RESULT :
+FILE#  CREATION_TIME           NAME
+309    5/17/2026 8:39:30 AM    +DATA/BLUDB/DATAFILE/tbs_loan.505.1233477569
+
+###sepas bayad ba estefade az dastoore zir in datafile ke dar standby dar masire na dorost va be soorate UNNAMED sakhte shode ast ra dar masire dorost besazim:
+###agar database OMF bashad:
+alter database create datafile '<masire kamele UNNAMED>' as new;
+###agar database OMF nabashad:
+alter database create datafile '<masire kamele UNNAMED>' as '<masire dorost ke az tarighe query bar rooye primary be dast avardeim.>';
+alter database create datafile '/u01/app/oracle/product/19.3/dbhome_1/dbs/UNNAMED00309' as '+DATA/BLUDB/DATAFILE/tbs_loan.505.1233477569';
+
+###sepas baraye inke digar in khata ra nkhorim bayad parameter standby_file_management ra ghabl az run kardane MRP dar standby database AUTO konim:
+alter system set standby_file_management=AUTO scope=both sid='*';
+###sepas MRP ra start mikonim.
+
+-------------------------------------
+
