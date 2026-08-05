@@ -1,0 +1,4 @@
+select * from (select s.sid,s.serial#,s.EVENT,s.PROGRAM,nvl(s.USERNAME,'oracle') as USERNAME,si.BLOCK_GETS,si.CONSISTENT_GETS,si.PHYSICAL_READS
+from v$session s
+inner join v$sess_io si on s.sid=si.sid
+order by si.PHYSICAL_READS desc) where rownum < 10; 
