@@ -1,0 +1,77 @@
+dedup script
+[oracle @ SIT-DB]~/sbt/bin/goodies $ cat agentless_backup_example.sh.old
+#!/bin/sh
+# $Copyright: Copyright (c) 2023 Veritas Technologies LLC. All rights reserved $
+
+# Set umask to 022 to make sure files and directories
+# are not created with world writable permissions.
+umask 022
+
+SBT_INFO_FILE=".sbt_info"
+SBT_INFO_FILE_PATH=${HOME}/${SBT_INFO_FILE}
+INSTALLED_PATH=
+PLUGIN_NAME="NetBackup Dedupe Direct for Oracle"
+
+#---------------------------------------------------
+# Function:    verify_plugin_installed
+# Description: Checking plug-in was installed or not
+# Return: 1-installed ; 0-not yet
+#---------------------------------------------------
+verify_plugin_installed ()
+{
+    if [ -f "${SBT_INFO_FILE_PATH}" ]; then
+        INSTALLED_PATH=`cat ${SBT_INFO_FILE_PATH} | grep 'SBT_INSTALL_PATH' | awk -F '=' '{print $2}'`
+        if [ -n "${INSTALLED_PATH}" ] ; then
+            return 1
+        else
+            return 0
+        fi
+    else
+        return 0
+    fi
+}
+
+
+if verify_plugin_installed ; then
+     echo ${PLUGIN_NAME} was not installed, exit.
+     exit 0
+fi
+
+echo "installation path: ${INSTALLED_PATH}"
+
+MSDPPARM="PARMS 'SBT_LIBRARY=${INSTALLED_PATH}/lib/libmsdp_sbt.so,SBT_PARMS=(SBTCONFIG=${INSTALLED_PATH}/etc/rman.cfg)' "
+
+export ALLOCATE=
+export RELEASE_CHANNEL=
+
+
+SQL_CONNECT_STRING=/
+ALLOCATE="$ALLOCATE allocate channel ch1 type SBT_TAPE $MSDPPARM;"
+
+RELEASE_CHANNEL="$RELEASE_CHANNEL RELEASE channel ch1;"
+
+# Run backup
+rman target $SQL_CONNECT_STRING <<-EOF
+    run {
+            $ALLOCATE
+             backup  current controlfile  format 'cf_d%d_u%u_s%s_p%p_t%t' ;
+             backup  database format 'database_d%d_u%u_s%s_p%p_t%t' ;
+             backup  archivelog all  format  'archivelog_d%d_u%u_s%s_p%p_t%t' ;
+
+            $RELEASE_CHANNEL
+    }
+    exit
+EOF
+STATUS=$?
+echo $STATUS
+
+#set controlfile autobackup format for device type SBT_TAPE to 'controlfile_autobackup_d%d_u%u_s%s_p%p_t%t_%F';
+#backup as compressed backupset incremental level 0 cumulative database include current controlfile plus archivelog  format for device type SBT_TAPE to 'backup_d%d_u%u_s%s_p%p_t%t' ;
+
+# backup current controlfile tag 'Backup_Controlfile' format  for device type SBT_TAPE to 'controlfile_%U' KEEP UNTIL TIME='sysdate+10' NOLOGS;
+
+
+# set controlfile autobackup format for device type SBT_TAPE to 'controlfile_autobackup_d%d_u%u_s%s_p%p_t%t_%F';
+ #           backup as compressed backupset incremental level 0 cumulative database include current controlfile plus archivelog  format  'backup_d%d_u%u_s%s_p%p_t%t' ;
+  #           backup  archivelog all  format  'archivelog_d%d_u%u_s%s_p%p_t%t' ;
+   #          backup  current controlfile   format  'current_controlfile_d%d_u%u_s%s_p%p_t%t' ;
