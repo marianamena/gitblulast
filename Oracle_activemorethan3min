@@ -1,0 +1,9 @@
+select a.username,a.sid,a.status,a.last_call_et,b.sql_text
+from gv$session a, gv$sqlarea b, gv$process c
+where a.sql_address=b.address and a.sql_hash_value=b.hash_value
+and a.paddr=c.addr
+and a.username is not null
+and a.last_call_et>(3*60)
+and a.status='ACTIVE' and a.USERNAME not in ('SYS')
+
+
