@@ -1,0 +1,316 @@
+100.40
+CURRTRANS --> CURRTRANS_tbs
+BPCNDX --> BPCNDX_tbs   (index ha faghat)
+
+
+select OWNER,SEGMENT_NAME from dba_segments where tablespace_name='CURRTRANS' and segment_type='TABLE PARTITION'  1206
+select COUNT(*) from dba_segments where tablespace_name='CURRTRANS' and segment_type='TABLE'; 4
+
+select count(*) from dba_segments where tablespace_name='CURRTRANS' and segment_type like '%TABLE%' 1210
+
+
+START FROM HERE:
+
+STEP 1 & 2 MOVE TABLES FROM CURRTRANS TO CURRTRANS_tbs:
+
+STEP 1:
+MOVE TABLE PARTITIONED TO CURRTRANS_tbs 1206 TABLES:
+
+select 'alter table '||table_owner||'.'||table_name||' MOVE PARTITION  '||partition_name||' tablespace CURRTRANS_TBS update global indexes parallel 8 ;' from dba_tab_partitions
+  where tablespace_name='CURRTRANS';
+
+
+
+STEP 2: MOVE 4 NON PARTITION TABLE TO NEW TABLESAPCE:
+
+alter table SVISTA.T_ADDRESS move online tablespace CURRTRANS_TBS parallel 8;
+alter table SVISTA.STTL_TAB move online tablespace CURRTRANS_TBS parallel 8;
+alter table SVISTA.STATEMENT_TRANS move online tablespace CURRTRANS_TBS parallel 8;
+alter table SVISTA.HOST_TRANS move online tablespace CURRTRANS_TBS parallel 8 ;
+
+
+
+alter table PUSHSERVICE_BLU.ACTIVE_TOKEN_14011014  move online tablespace APP_TBS parallel 8 ;
+alter table PUSHSERVICE.INBOX move online tablespace APP_TBS parallel 8 ;
+alter table PUSHSERVICE.MARKETING_BCK move online tablespace APP_TBS parallel 8 ;
+alter table PUSHSERVICE.MARKETING_PUSH move online tablespace APP_TBS parallel 8 ;
+alter table PUSHSERVICE.INFO move online tablespace APP_TBS parallel 8 ;
+alter table PUSHSERVICE.NATIVE_PUSH move online tablespace APP_TBS parallel 8 ;
+alter table PUSHSERVICE.ACTIVE_TOKEN move online tablespace APP_TBS parallel 8 ;
+alter table PUSHSERVICE.REQUEST_NATIVE_PUSH move online tablespace APP_TBS parallel 8 ;
+alter table PUSHSERVICE.MARKETING move online tablespace APP_TBS parallel 8 ;
+alter table PUSHSERVICE_BLU.ACTIVE_TOKEN move online tablespace APP_TBS parallel 8 ;
+alter table PUSHSERVICE.MIGRATIONS move online tablespace APP_TBS parallel 8 ;
+alter table PUSHSERVICE_BLU.MIGRATIONS move online tablespace APP_TBS parallel 8 ;
+alter table PUSHSERVICE.BLACKLIST move online tablespace APP_TBS parallel 8 ;
+alter table PUSHSERVICE.MONITOR move online tablespace APP_TBS parallel 8 ;
+alter table PUSHSERVICE.MESSAGE_ROUTING move online tablespace APP_TBS parallel 8 ;
+alter table PUSHSERVICE_BLU.REQUEST_ACTION_RECORD move online tablespace APP_TBS parallel 8 ;
+
+
+
+STEP3:
+MOVE INDEXES IN CURRTRANS TO BPCNDX_tbs:(ONLY PARTITIONED INDEX ARE IN CURRTRANS_TBS)
+
+JUST MOVE NON PARTITIONED INDEX TO BPCNDX_tbs:
+
+alter index SVISTA.STMT_NDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_STATEMENT_TRANS rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_STTL rebuild online tablespace BPCNDX_tbs parallel 10 ;
+alter index SVISTA.HOST_TRANS_NDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.ADDRESS_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+
+
+alter index PUSHSERVICE.PK_3b1f3ce523320e723897ba9dd98 rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.PK_MARKETING_PUSH_PRIMARY_KEY_ID rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.IDX_MARKETING_PUSH_INDEX_TRACKING_CODE rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.NATIVE_PUSH_PK rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.NATIVE_PUSH_INDEX1 rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.ACTIVE_TOKEN_PK rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.ACTIVE_TOKEN_INDEX1 rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.ACTIVE_TOKEN_INDEX2 rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.ACTIVE_TOKEN_INDEX3 rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.REQUEST_NATIVE_PUSH_PK rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.REQUEST_NATIVE_PUSH_INDEX1 rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.REQUEST_NATIVE_PUSH_INDEX2 rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.MARKETING_PK rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.name rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.PK_983c4f16a86b461ae4f6d9c5753 rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.PK_1b5f4615a1b589950f7417ac766 rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.PK_7ade7a117b88494bc3677c76843 rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.PK_80a80c310837bd099a31ee0cf5d rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE.UQ_cf299e0d4e1e6713b9d0babe99e rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE_BLU.PK_REQUEST_ACTION_RECORD_ID rebuild online tablespace APP_TBS parallel 8 ;
+alter index PUSHSERVICE_BLU.IDX_REQUEST_ACTION_RECORD_TRACKING_CODE rebuild online tablespace APP_TBS parallel 8 ;
+
+
+
+STEP 4: MOVE PARTITIONED INDEX TO BPCNDX_tbs:
+
+ select 'alter index '||index_owner||'.'||index_name ||' rebuild partition '||PARTITION_NAME||' online tablespace BPCNDX_tbs parallel 8;'
+    from dba_ind_partitions where tablespace_name='CURRTRANS' 
+
+
+STEP 5: MOVE PARTITIONED INDEXES IN BPCNDX TO BPCNDX_tbs:
+ select 'alter index '||index_owner||'.'||index_name ||' rebuild partition '||PARTITION_NAME||' online tablespace BPCNDX_tbs parallel 8;'
+    from dba_ind_partitions where tablespace_name='BPCNDX' ;
+
+
+
+step 6:MOVE NON PARTITIONED INDEX TO BPCNDX_tbs :
+
+alter index SVISTA.PK_REST_SCHEME_DESC rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.TEMP_PARAM_TEMPLATES_FK_I rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.TEMP_PARAM_PARAMETERS_FK_I rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.IK_TGRT_PID_ACQINSTID rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_TERM_DEF_BI_TERM_ID rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.IK_CREF_CREF_NO_CONTRACT_ID rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.NDX_CREF_MOB_PHONE rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CREF_SURNAME rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.IK_CARDHOLDER_ID rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_CREF_TAB_CARD_ID rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CREF_INDX1 rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CREF_INDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CREF_INDX2 rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.IK_ISS_REF_TAB_CUST_PERS_INST rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.IK_ISS_REF_TAB_PERS_INST rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_NWIND rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_ISS_REF_TAB_CARD_MEM_NO rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.TGRT_DESC_TAB_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PID_ATTRIBUTE_DESC_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_LIMITS rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_SVFEFLDMAP_FLD_SRV_PDS_PID rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_FA11 rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.IK_NTWK_STAT_RID rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.IK_T_MISC_SRV_PARENT_SRV rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.IK_RT_TAB_ETYPE_DEV_TYPE rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.IK_T_CLEANUP_LOG_TM rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.STMT_NDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_NTWK_STAT rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_MISC_SRV_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_RT rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_T_CLEANUP_LOG rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_STATEMENT_TRANS rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_ACCT_TAB_ACCT_INST rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.IK_CARD_ACCT_ACCT_NO rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PARAMETERS_PARAM_TYPE_FK_I rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_CARD_LIMITS_NDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.IK_IBANK_TRANS_REFNUM_DATE rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_IBANK_TRACE_TERMID_TIME rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_IBANK_TRANS rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_SMS_SRV_TRANS rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_CARD_OTP rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_ISO8583_TRANS rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_T_TIMESTAMP_MSG_IN_OUT rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.IDX_COMP_TIMESTAMP rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.POS_TRANS_NDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.SV_RVSL_NDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.SV_RVSL_NDX2 rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_SMS_MESSAGE rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_ACCT_HOLD_AMOUNT rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_BO_TRANS_NDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_TRANS_STTL rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_INT_TRANS rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_SAF_TRANS rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_TX_STAT_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_SPLIT_TRANS_NDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_SPLIT_TRANS_NDX1 rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.HOST_TRANS_NDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_SVFM_TRANS rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_PMT_TRANS_NDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_TERM_EVENT_LOG rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CURR_TRANS_NDX2 rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_TRAN_PARAM_GROUP_NDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_TERM_CLASS rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_HSM_DEVICES rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CARD_TYPE_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.ADDRESS_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.RESP_CODE_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_LMT_TYPES_NDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CARD_TEMPLATE_NAME_UK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CARD_TEMPLATES_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.TERM_TYPE_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_NTWK_DEF_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_SMS_TEXT_FORMAT rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_INST_ATTRIBUTES rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_ISS_FEE_RULES_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_CARD_ACCT rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CARD_ACCT_INDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_SAF_CFG rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_MISC_SRV_TRANS_SCHEME rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_MCC_GROUP_DESX_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_FEE_TYPE_FT01_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_HOST_GROUP_TAB rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CARD_PARAMETERS_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CARD_PARAMETER_NAME_UK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_SMS_DELIVERY rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_MISC_CARD_SRV_PARAM_VALUE rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_SI_TRANS rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.TERM_REST_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_TRAN_PARAM_SET rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UNIQUE_PID rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_TX_ALG rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_RESP_TAB rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_HOST_ONLINE_CFG rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_HOST_ONLINE_CFG rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.MERCHANT_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_AUTH_SMS_NOTIF rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_AUTH_SMS_NOTIF rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_T_CODES rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_ISS_SEC_KEYS rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.TRANS_TYPE_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_CARD_BRANDS_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_CARD_BRANDS_NDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_SAF_PARAMS rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_SV_ALL_PRIVS rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UNI_AUTH rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_REST_SCHEME rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_INST_ATTRIBUTE_DESC rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.NTWK_FNS_TAB_NDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_SVFE_FLD_CFG rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.TCP_INDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_MISC_SRV_GROUP_DESC rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.T_MISC_CARD_SRV_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_TERM_KEY rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.TERM_DEF_UK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.TERM_DEF_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CART_TEMPLATE_PARAM_UK_TID_PID rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CARD_TEMPLATE_PARAM_UK_ID_ORD rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_MISC_SRV_PARAM rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.INSTIT_TAB_UK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.INSTIT_TAB_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_ISS_BIN rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UNIQUE_TYPE rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_T_PID_STATUS rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_MISC_SRV_ATTRIBUTES rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CARD_TEMPLATE_TYPE_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_STTL rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UNIQ_LMT rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PID_ATTRIBUTES_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_T_CLEANUP_SETUP rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_NET2NET_AUTH rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_SV_SYSTEM rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_BPCHOST_MSGTYPE rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.TES_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.FEE_CONST_IDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_FROM_BPCHOST_RESP_TAB rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.TGRC_DESC_TAB_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.ISO_CURRENCY_CODES_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.ADDR_TYPE_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.MRC_CAT_PK rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_ISS_BIN_TEMPLATE rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_SYSTEM_ATTRIBUTES rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_NTWK_INST rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.HOST_GROUP_STAT_INDX rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_TGRC_TAB rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.PK_TRANS_AUTH_ACT_DESC rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.IDX_UTRNNO_REVERSAL_MTI rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CREF_INDX1_SVFEDB2 rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CREF_INDX2_SVFEDB2 rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CREF_INDX_SVFEDB2 rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.UK_CREF_TAB_CARD_ID_SVFEDB2 rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.CREF_SURNAME_SVFEDB2 rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.IK_CARDHOLDER_ID_SVFEDB2 rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.IK_CREF_CREF_NO_CONTRACT_ID_SVFEDB2 rebuild online tablespace BPCNDX_tbs parallel 8 ;
+alter index SVISTA.NDX_CREF_MOB_PHONE_SVFEDB2 rebuild online tablespace BPCNDX_tbs parallel 8 ;
+
+
+STEP 7: ALTER INDEXES TO NOPARALLEL:
+
+
+select 'alter INDEX ' || OWNER || '.'|| segment_name ||' noparallel;' FROM dba_segments WHERE segment_type='INDEX' and tablespace_name='BPCNDX_TBS';
+
+
+
+
+STEP 8 :
+CHECK ORPHAN INDEXES:
+   select 'ALTER INDEX SVISTA.'||index_name||' REBUILD online;' from dba_indexes where owner='SVISTA' and partitioned='NO' and ORPHANED_ENTRIES='YES';
+
+
+##################################################################################################################
+
+asli:
+alter table IAM.UM_USER_ATTRIBUTE move online tablespace IAM_TBS_N   update global indexes parallel 8;
+
+
+index:
+
+
+alter index IAM.SYS_C0022431 rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.UM_USER_ATTRIBUTE_INDEX1 rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.UM_USER_ATTRIBUTE_INDEX2 rebuild  online tablespace IAM_IDX_N  parallel 8;
+
+
+alter index IAM.SYS_C0022431 noparallel;
+alter index IAM.UM_USER_ATTRIBUTE_INDEX1 noparallel;
+alter index IAM.UM_USER_ATTRIBUTE_INDEX2 noparallel;
+
+
+
+
+
+
+alter index IAM.SYS_IL0000105974C00002$$ rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.SYS_IL0000105977C00004$$ rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.SYS_IL0000105980C00004$$ rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.SYS_IL0000105983C00007$$ rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.SYS_IL0000105983C00008$$ rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.SYS_IL0000105988C00006$$ rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.SYS_IL0000105991C00002$$ rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.SYS_IL0000105994C00003$$ rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.SYS_IL0000105997C00002$$ rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.SYS_IL0000106000C00003$$ rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.SYS_IL0000106003C00005$$ rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.SYS_IL0000106006C00004$$ rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.SYS_IL0000106009C00008$$ rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.SYS_IL0000106012C00006$$ rebuild  online tablespace IAM_IDX_N  parallel 8;
+alter index IAM.SYS_IL0000240903C00036$$ rebuild  online tablespace IAM_IDX_N  parallel 8;
+
+
+
+
+
+
+
+
