@@ -1,0 +1,3 @@
+select pg_indexes_size('staging.mifostenantdefault_acc_gl_journal_entry') size index, name table 
+select pg_relation_size('staging.mifostenantdefault_acc_gl_journal_entry') size jadval bedone index,name table 
+select pg_total_relation_size('staging.mifostenantdefault_acc_gl_journal_entry') ba index name table 
