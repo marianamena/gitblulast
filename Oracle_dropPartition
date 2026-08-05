@@ -1,0 +1,28 @@
+   set linesize 200;
+   set feedback off;
+   set head off;
+   set echo off;
+   set time off;
+   set timing off;
+   spool /home/oracle/drop.sql
+
+   select 'alter table '||table_owner||'.'||table_name||' drop partition '||partition_name||' update global indexes;' from dba_tab_partitions a where table_owner='ORCHIDEH' and table_name='TBL_SERVICES'
+ and hv_to_date(a.table_owner, a.table_name, a.partition_name)<trunc(sysdate-7);
+   
+
+
+   1.select 'alter index '||i.index_owner||'.'||i.index_name ||' rebuild partition '||i.PARTITION_NAME||' TABLESPACE '||i.tablespace_name ||' online;' 
+from dba_ind_partitions i, dba_tab_partitions t where t.partition_name=i.partition_name and i.status<>'USABLE';
+
+   2.select 'ALTER INDEX ORCHIDEH.'||index_name||' REBUILD online;' from dba_indexes where owner='ORCHIDEH' and status='UNUSABLE' and table_name='TBL_SERVICES'
+ 
+
+
+   3.select 'ALTER INDEX ORCHIDEH.'||index_name||' REBUILD online;' from dba_indexes where owner='ORCHIDEH' and partitioned='NO' and ORPHANED_ENTRIES='YES' and table_name in('TBL_SERVICES');
+  
+  spool off;
+
+
+
+   4.with index_name as (select /*+no_merge*/ distinct owner , index_name from dba_ind_statistics where owner='ORCHIDEH' and stale_stats ='YES' and table_name='TBL_SERVICES')
+   select 'EXEC DBMS_STATS.gather_index_stats(''ORCHIDEH'','''||index_name||''');' from index_name;
