@@ -1,0 +1,17 @@
+#create db in postgres
+create user linotpuser with password 'lin0tpp98ss';
+create database linotp_db owner linotpuser;
+grant connect on database linotp_db  to linotpuser;
+grant all privileges on database linotp_db  to linotpuser;
+
+grant USAGE on DATABASE linotp_db TO linotpuser ;
+grant USAGE on SCHEMA public to linotp_db ;
+grant ALL ON SCHEMA public to linotp_db ;
+
+
+user :linotpuser
+pass: lin0tpp98ss
+
+
+grant USAGE on SCHEMA happy2help to "m.raoofnia" ;
+
