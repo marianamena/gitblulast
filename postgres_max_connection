@@ -1,0 +1,4 @@
+ALTER SYSTEM SET max_connections = 300;
+SHOW MAX_CONNECTIONS;
+ systemctl restart postgresql
+SHOW MAX_CONNECTIONS;
