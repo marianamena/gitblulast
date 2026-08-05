@@ -32,3 +32,175 @@ You can find the details on ports used by this deployment at : /u01/app/oracle/m
 /u01/app/oracle/middleware/gc_inst/user_projects/domains/GCDomain weblogic
 
 LISTENER_c-dg-pr-node1.sdb247.com
+
+
+
+Enterprise Manager 24ai Release 1 Installation
+
+
+1.install operating system:
+
+-- Os Installation ---> install Os version: Oracle Linux 8.10
+
+--- cd $ORACLE_HOME/cv/admin
+--- edit cvu_config and set CV_ASSUME_DISTID=OEL8.10 to operating system vesion.
+
+
+2.install oracle database
+
+-- just oracle installed (grid was not installed)
+   database version ---> Oracle database 19.3
+
+-- Create ORACLE_HOME and ORACLE_SID path:
+
+--- create ORACLE_SID path ---> mkdir -p /u01/app/oracle
+--- create ORACLE_HOME path ---> mkdir -p /u01/app/oracle/product/19.3.0/dbhome_1
+--- chown oracle:oinstall -R /u01/app/oracle/product/19.3.0/dbhome_1
+
+
+-- Copy 19 database source  to ORACLE_HOME and unzip :
+
+run ---> ./runInstaller
+
+
+-- After installation completed ---> edit bash_profile 
+
+--- add ORACLE_HOME,ORACLE_BASE,PATH,LD_LIBRARY_PATH,ORACLE_UNQNAME,ORACLE_HOSTNAME in bash_profile
+
+-- passwd oracle
+
+-- install packages needed:
+--- yum install -y make
+--- yum install -y binutils
+--- yum install -y gcc
+--- yum install -y libaio
+--- yum install -y libstdc++
+--- yum install -y sysstat
+--- yum install -y glibc-devel
+--- yum install -y glibc-common
+--- yum install -y libXtst
+--- yum install -y libnsl
+
+
+-- config listener ---> netca ---> restart listener & check listener status
+
+
+-- set some parmeters in database:
+
+--- alter system set "_allow_insert_with_update_check"=true scope=both;
+--- alter system set session_cached_cursors=500 scope=spfile;
+--- alter system set processes=640 scope=spfile;
+
+--- SHUTDOWN IMMEDIATE;
+--- startup;
+
+
+3.Upgrade Database to  ---> 19.24
+
+--- copy patch fro 19c and unzip: ---> apply the patch
+
+
+4.Cloud Contorl Installation  
+
+-- before installtion you need to have network access to ports and ips:
+-- for single :ports should be open from host to cloud control host : 1521,4903
+-- for single :ports should be open from cloud control host to host : 3872,1521,22,7803
+--- After installation completed ,you dont need port 22,you can release it.
+
+-- for rac: ports should be open from all public ips and scan ips and vip ips to cloud control host:1521,4903
+-- for rac: ports should be open from  cloud control host to all public ips and scan ips and vip ips :3872,1521,22,7803
+
+
+--- check free space for installation files.
+--- download all files for Enterprise Manager 24ai R1 from oracle site ---> copy all in a path(path is not important)
+
+--- unzip all these files then delete below zip files.
+
+V1046951-01.zip
+V1046952-01.zip
+V1046953-01.zip
+V1046954-01.zip
+V1046955-01.zip
+
+--- After unziping zip files ---> these files appear:
+
+em24100_linux64-2.zip
+em24100_linux64-3.zip
+em24100_linux64-4.zip
+em24100_linux64-5.zip
+em24100_linux64.bin
+
+-- create directory for OMS_HOME and AGENT:
+
+--- mkdir -p /u01/app/oracle/middleware
+--- mkdir -p /u01/app/oracle/agent
+
+-- run ---> ./em24100_linux64.bin
+
+--- during the installation ---> login with root and run script that is needed in installation with root.
+
+-- After installation ends ---> add these lines to bash_profile:
+
+
+--- export OMS_HOME=/u01/app/oracle/middleware/oms_home
+--- export AGENT_HOME=/u01/app/oracle/agent/agent_inst
+
+
+
+--  Stop and Start everything:
+
+--- $OMS_HOME/bin/emctl stop oms -all
+
+--- $AGENT_HOME/bin/emctl stop agent
+
+--- $OMS_HOME/bin/emctl start oms 
+
+--- $AGENT_HOME/bin/emctl start agent
+
+
+4.Add singel host and database to cloud control 24ai:
+
+-- create path for installation ---> mkdir -p /u01/app/oracle/oms-24
+
+-- add cloud contorl in every hosts in  /etc/hosts and add all hosts in cloud control in /etc/hosts 
+
+
+-- setup ---> add target ---> add targets manually ---> install agent on hosts
+
+
+--- write compelete hostname which is written in /etc/hosts in host 
+---platform ---> linux x86-64
+
+---write the path which iwas created ---> deploy agent
+
+--with user root ---> run /u01/app/oracle/agent24ai/agent_24.1.0.0.0/root.sh 
+
+-- add targt to database ---> add target manually 
+
+--- select host which needed to install database ---> select database instance
+--- write port ,databasename,... to be add.
+
+
+4. add rac hosts and database to cloud control 24ai:
+
+-- after adding hosts in cloud contorl.
+
+-- select add target manually ---> select cluster database ---> add all nodes in cluster
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
