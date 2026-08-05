@@ -1,0 +1,4 @@
+ set line 200 ;
+set time on;
+set timing on;
+EXEC DBMS_STATS.GATHER_TABLE_STATS ( ownname => 'ORCHIDEH',tabname =>'TBL_SEQUENCE_OCCURRENCE_ID',degree=> 10,cascade=>true);
