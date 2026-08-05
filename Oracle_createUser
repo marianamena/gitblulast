@@ -1,0 +1,14 @@
+#create user in Oracle
+
+create user n_farahani identified by PA19DPOWTfZodaQEvfpf ;
+alter user n_farahani  profile IND_PROF;
+alter user  n_farahani quota unlimited on users;
+grant create session,connect,resource to n_farahani;
+
+
+
+ip: 172.17.5.54
+port:1521
+service name:cbstest
+user: n_farahani
+pass:PA19DPOWTfZodaQEvfpf
