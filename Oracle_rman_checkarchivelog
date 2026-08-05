@@ -1,0 +1,7 @@
+#check archivelog status
+
+select to_char(start_time,'yyyy/mm/dd hh24:mi') start_time,status,to_char(end_time,'yyyy/mm/dd hh24:mi') end_time,
+output_device_type dev_type,input_type,input_bytes_display input_size,output_bytes_display output_size,time_taken_display duration,round(compression_ratio,2) comp_rate
+from v$rman_backup_job_details
+where input_type='ARCHIVELOG'
+order by start_time;
