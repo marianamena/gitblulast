@@ -1,0 +1,553 @@
+GoldenGate Moitoring:
+source /home/oracle/.bash_profile
+/u01/scripts/test.sh > /tmp/test.txt
+/u01/scripts/test.sh > /zabbix/logs/goldengate.txt
+
+##################################### Part 1 #############################################
+
+
+#part 1: check the number of stopped or abended process
+
+num_stopped=`cat /tmp/test.txt|grep STOPPED|grep -v JAGENT|grep -v PMSRVR|wc -l`
+num_abended=`cat /tmp/test.txt|grep ABENDED|grep -v JAGENT|grep -v PMSRVR|wc -l`
+
+
+echo $num_stopped > /tmp/stopped.txt
+echo $num_abended > /tmp/abended.txt
+
+#for prometheus
+echo $num_stopped > /zabbix/logs/stopped.txt
+echo $num_abended > /zabbix/logs/abended.txt
+
+
+###########################part 2 #########################
+#check lag at checkpoint for extract process more than 1 min
+
+cat /tmp/test.txt|grep EXTRACT > /tmp/status_extract_lag.txt
+
+
+
+
+input_file="/tmp/status_extract_lag.txt"
+
+awk '{
+    # Split the fourth column ($4) by ":"
+    split($4, time_parts, ":");
+
+    # time_parts[1] will be the hours part (e.g., "00" from "00:00:00")
+    # time_parts[2] will be the minutes part (e.g., "00" from "00:00:00")
+    if (time_parts[1] != "00" || time_parts[2] > "01") {
+        print # Print the entire line
+    }
+}' "$input_file" >/tmp/lag_extract.txt
+number_lag_extract=`cat  /tmp/lag_extract.txt|wc -l`
+echo $number_lag_extract > /tmp/number_lag_extract.txt
+
+#for prometheus
+echo $number_lag_extract > /zabbix/logs/number_lag_extract_m1min.txt
+# cat /tmp/number_lag_extract.txt if for userparameter for number of lag in extract
+
+###########################part 3 #########################
+#check lag at checkpoint for extract process more than 1 min
+
+cat /tmp/test.txt|grep REPLICAT > /tmp/status_replicate_lag.txt
+
+
+
+
+input_file="/tmp/status_replicate_lag.txt"
+
+awk '{
+    # Split the fourth column ($4) by ":"
+    split($4, time_parts, ":");
+
+    # time_parts[1] will be the hours part (e.g., "00" from "00:00:00")
+    # time_parts[2] will be the minutes part (e.g., "00" from "00:00:00")
+    if (time_parts[1] != "00" || time_parts[2] > "01") {
+        print # Print the entire line
+    }
+}' "$input_file" >/tmp/lag_replicate.txt
+number_lag_replicate=`cat  /tmp/lag_replicate.txt|wc -l`
+echo $number_lag_replicate > /tmp/number_lag_replicate.txt
+#for prometheus
+echo $number_lag_replicate > /zabbix/logs/number_lag_replicat_m1min.txt
+# cat /tmp/number_lag_replicate.txt if for userparameter for number of lag in replicate
+
+###########################part 4 #########################
+#check  time since  checkpoint for extract process more than 1 min
+
+cat /tmp/test.txt|grep EXTRACT > /tmp/status_extract_lag_tsch.txt
+
+
+
+
+input_file="/tmp/status_extract_lag_tsch.txt"
+
+awk '{
+    # Split the fourth column ($4) by ":"
+    split($5, time_parts, ":");
+
+    # time_parts[1] will be the hours part (e.g., "00" from "00:00:00")
+    # time_parts[2] will be the minutes part (e.g., "00" from "00:00:00")
+    if (time_parts[1] != "00" || time_parts[2] > "01") {
+        print # Print the entire line
+    }
+}' "$input_file" >/tmp/lag_extract_tsch.txt
+number_lag_extract_tsch=`cat  /tmp/lag_extract_tsch.txt|wc -l`
+echo $number_lag_extract_tsch > /tmp/number_lag_extract_tsch.txt
+#for prometheus
+
+echo $number_lag_extract_tsch > /zabbix/logs/number_lag_extract_m1min_tsch.txt
+# cat /tmp/number_lag_extract.txt if for userparameter for number of lag in extract
+####################################################################
+###########################part 5 #########################
+#check lag at checkpoint for replicate process more than 1 min
+
+cat /tmp/test.txt|grep REPLICAT > /tmp/status_replicate_lag_tsch.txt
+
+
+
+
+input_file="/tmp/status_replicate_lag_tsch.txt"
+
+awk '{
+    # Split the fourth column ($4) by ":"
+    split($5, time_parts, ":");
+
+    # time_parts[1] will be the hours part (e.g., "00" from "00:00:00")
+    # time_parts[2] will be the minutes part (e.g., "00" from "00:00:00")
+    if (time_parts[1] != "00" || time_parts[2] > "01") {
+        print # Print the entire line
+    }
+}' "$input_file" >/tmp/lag_replicate_tsch.txt
+number_lag_replicate_tsch=`cat  /tmp/lag_replicate_tsch.txt|wc -l`
+echo $number_lag_replicate_tsch > /tmp/number_lag_replicate_tsch.txt
+
+# cat /tmp/number_lag_replicate_tsch.txt if for userparameter for number of lag in replicate(time since checkpoint)
+
+#for prometheus
+echo $number_lag_replicate_tsch > /zabbix/logs/number_lag_replicat_m1min_tsch.txt
+
+
+###########################part 2 #########################
+#check lag at checkpoint for extract process more than 5 min
+
+cat /tmp/test.txt|grep EXTRACT > /tmp/status_extract_lag.txt
+
+
+
+
+input_file="/tmp/status_extract_lag.txt"
+
+awk '{
+    # Split the fourth column ($4) by ":"
+    split($4, time_parts, ":");
+
+    # time_parts[1] will be the hours part (e.g., "00" from "00:00:00")
+    # time_parts[2] will be the minutes part (e.g., "00" from "00:00:00")
+    if (time_parts[1] != "00" || time_parts[2] > "05") {
+        print # Print the entire line
+    }
+}' "$input_file" >/tmp/lag_extract_5.txt
+number_lag_extract_5=`cat  /tmp/lag_extract_5.txt|wc -l`
+echo $number_lag_extract_5 > /tmp/number_lag_extract_5.txt
+
+# cat /tmp/number_lag_extract.txt if for userparameter for number of lag in extract
+
+#for prometheus
+echo $number_lag_extract_5 > /zabbix/logs/number_lag_extract_m5min.txt
+###########################part 3 #########################
+#check lag at checkpoint for extract process more than 5 min
+
+cat /tmp/test.txt|grep REPLICAT > /tmp/status_replicate_lag.txt
+
+
+
+
+input_file="/tmp/status_replicate_lag.txt"
+
+awk '{
+    # Split the fourth column ($4) by ":"
+    split($4, time_parts, ":");
+
+    # time_parts[1] will be the hours part (e.g., "00" from "00:00:00")
+    # time_parts[2] will be the minutes part (e.g., "00" from "00:00:00")
+    if (time_parts[1] != "00" || time_parts[2] > "05") {
+        print # Print the entire line
+    }
+}' "$input_file" >/tmp/lag_replicate_5.txt
+number_lag_replicate_5=`cat  /tmp/lag_replicate_5.txt|wc -l`
+echo $number_lag_replicate_5 > /tmp/number_lag_replicate_5.txt
+
+#for prometheus
+echo $number_lag_replicate_5 > /zabbix/logs/number_lag_replicat_m5min.txt
+# cat /tmp/number_lag_replicate.txt if for userparameter for number of lag in replicate
+###########################part 4 #########################
+#check  time since  checkpoint for extract process more than 5 min
+
+cat /tmp/test.txt|grep EXTRACT > /tmp/status_extract_lag_tsch.txt
+
+
+
+
+input_file="/tmp/status_extract_lag_tsch.txt"
+
+awk '{
+    # Split the fourth column ($4) by ":"
+    split($5, time_parts, ":");
+
+    # time_parts[1] will be the hours part (e.g., "00" from "00:00:00")
+    # time_parts[2] will be the minutes part (e.g., "00" from "00:00:00")
+    if (time_parts[1] != "00" || time_parts[2] > "05") {
+        print # Print the entire line
+    }
+}' "$input_file" >/tmp/lag_extract_tsch_5.txt
+number_lag_extract_tsch_5=`cat  /tmp/lag_extract_tsch_5.txt|wc -l`
+echo $number_lag_extract_tsch_5 > /tmp/number_lag_extract_tsch_5.txt
+#for prometheus
+echo $number_lag_extract_tsch_5 >/zabbix/logs/number_lag_extract_m5min_tsch.txt
+
+# cat /tmp/number_lag_extract.txt if for userparameter for number of lag in extract
+####################################################################
+###########################part 5 #########################
+#check lag at checkpoint for replicate process more than 5 min
+
+cat /tmp/test.txt|grep REPLICAT > /tmp/status_replicate_lag_tsch.txt
+
+
+
+
+input_file="/tmp/status_replicate_lag_tsch.txt"
+
+awk '{
+    # Split the fourth column ($4) by ":"
+    split($5, time_parts, ":");
+
+    # time_parts[1] will be the hours part (e.g., "00" from "00:00:00")
+    # time_parts[2] will be the minutes part (e.g., "00" from "00:00:00")
+    if (time_parts[1] != "00" || time_parts[2] > "05") {
+        print # Print the entire line
+    }
+}' "$input_file" >/tmp/lag_replicate_tsch_5.txt
+number_lag_replicate_tsch_5=`cat  /tmp/lag_replicate_tsch_5.txt|wc -l`
+echo $number_lag_replicate_tsch_5 > /tmp/number_lag_replicate_tsch_5.txt
+
+#for prometheus
+echo $number_lag_replicate_tsch_5 > /zabbix/logs/number_lag_replicat_m5min_tsch.txt
+# cat /tmp/number_lag_replicate_tsch.txt if for userparameter for number of lag in replicate(time since checkpoint)
+
+#lag at checkpoint  for EXCB
+
+hour_EXCB_chkpoint=`cat /tmp/test.txt|grep EXCB|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXCB_chkpoint=`cat /tmp/test.txt|grep EXCB|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXCB_chkpoint=$((hour_EXCB_chkpoint * 60))
+lag_min_EXCB_chkpoint=$((hour_tomin_EXCB_chkpoint + min_EXCB_chkpoint))
+echo $lag_min_EXCB_chkpoint > /tmp/diff_EXCB.txt
+
+#for prometheus
+echo $lag_min_EXCB_chkpoint > /zabbix/logs/diff_EXCB.txt
+
+#lag at checkpoint  for EXCT
+
+hour_EXCT_chkpoint=`cat /tmp/test.txt|grep EXCT|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXCT_chkpoint=`cat /tmp/test.txt|grep EXCT|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXCT_chkpoint=$((hour_EXCT_chkpoint * 60))
+lag_min_EXCT_chkpoint=$((hour_tomin_EXCT_chkpoint + min_EXCT_chkpoint))
+echo $lag_min_EXCT_chkpoint > /tmp/diff_EXCT.txt
+#for prometheus
+
+echo $lag_min_EXCB_chkpoint >/zabbix/logs/diff_EXCT.txt
+
+#lag at checkpoint  for EXKC
+
+hour_EXKC_chkpoint=`cat /tmp/test.txt|grep EXKC|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXKC_chkpoint=`cat /tmp/test.txt|grep EXKC|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXKC_chkpoint=$((hour_EXKC_chkpoint * 60))
+lag_min_EXKC_chkpoint=$((hour_tomin_EXKC_chkpoint + min_EXKC_chkpoint))
+echo $lag_min_EXKC_chkpoint > /tmp/diff_EXKC.txt
+#for prometheus
+
+
+echo $lag_min_EXKC_chkpoint > /zabbix/logs/diff_EXKC.txt
+#lag at checkpoint  for EXMA
+
+hour_EXMA_chkpoint=`cat /tmp/test.txt|grep EXMA|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXMA_chkpoint=`cat /tmp/test.txt|grep EXMA|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXMA_chkpoint=$((hour_EXMA_chkpoint * 60))
+lag_min_EXMA_chkpoint=$((hour_tomin_EXMA_chkpoint + min_EXMA_chkpoint))
+echo $lag_min_EXMA_chkpoint > /tmp/diff_EXMA.txt
+#for prometheus
+echo $lag_min_EXMA_chkpoint > /zabbix/logs/diff_EXMA.txt
+#lag at checkpoint  for EXMD
+
+hour_EXMD_chkpoint=`cat /tmp/test.txt|grep EXMD|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXMD_chkpoint=`cat /tmp/test.txt|grep EXMD|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXMD_chkpoint=$((hour_EXMD_chkpoint * 60))
+lag_min_EXMD_chkpoint=$((hour_tomin_EXMD_chkpoint + min_EXMD_chkpoint))
+echo $lag_min_EXMD_chkpoint > /tmp/diff_EXMD.txt
+#for prometheus
+
+echo $lag_min_EXMD_chkpoint > /zabbix/logs/diff_EXMD.txt
+#lag at checkpoint  for EXMT
+
+hour_EXMT_chkpoint=`cat /tmp/test.txt|grep EXMT|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXMT_chkpoint=`cat /tmp/test.txt|grep EXMT|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXMT_chkpoint=$((hour_EXMT_chkpoint * 60))
+lag_min_EXMT_chkpoint=$((hour_tomin_EXMT_chkpoint + min_EXMT_chkpoint))
+echo $lag_min_EXMT_chkpoint > /tmp/diff_EXMT.txt
+#for prometheus
+echo $lag_min_EXMT_chkpoint  > /zabbix/logs/diff_EXMT.txt
+#lag at checkpoint  for EXOR
+
+hour_EXOR_chkpoint=`cat /tmp/test.txt|grep EXOR|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXOR_chkpoint=`cat /tmp/test.txt|grep EXOR|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXOR_chkpoint=$((hour_EXOR_chkpoint * 60))
+lag_min_EXOR_chkpoint=$((hour_tomin_EXOR_chkpoint + min_EXOR_chkpoint))
+echo $lag_min_EXOR_chkpoint > /tmp/diff_EXOR.txt
+echo $lag_min_EXOR_chkpoint >  /zabbix/logs/diff_EXOR.txt
+
+
+
+#for prometheus
+
+
+#lag at checkpoint  for EXPF
+
+hour_EXPF_chkpoint=`cat /tmp/test.txt|grep EXPF|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXPF_chkpoint=`cat /tmp/test.txt|grep EXPF|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXPF_chkpoint=$((hour_EXSP_chkpoint * 60))
+lag_min_EXPF_chkpoint=$((hour_tomin_EXPF_chkpoint + min_EXPF_chkpoint))
+echo $lag_min_EXPF_chkpoint > /tmp/diff_EXPF.txt
+#for prometheus
+echo $lag_min_EXPF_chkpoint >  /zabbix/logs/diff_EXPF.txt
+
+#lag at checkpoint  for EXSO
+
+hour_EXSO_chkpoint=`cat /tmp/test.txt|grep EXSO|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXSO_chkpoint=`cat /tmp/test.txt|grep EXSO|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXSO_chkpoint=$((hour_EXSO_chkpoint * 60))
+lag_min_EXSO_chkpoint=$((hour_tomin_EXSO_chkpoint + min_EXSO_chkpoint))
+echo $lag_min_EXSO_chkpoint > /tmp/diff_EXSO.txt
+#for prometheus
+
+echo $lag_min_EXSO_chkpoint >  /zabbix/logs/diff_EXSO.txt
+#lag at checkpoint  for EXSP
+
+hour_EXSP_chkpoint=`cat /tmp/test.txt|grep EXSP|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXSP_chkpoint=`cat /tmp/test.txt|grep EXSP|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXSP_chkpoint=$((hour_EXSP_chkpoint * 60))
+lag_min_EXSP_chkpoint=$((hour_tomin_EXSP_chkpoint + min_EXSP_chkpoint))
+echo $lag_min_EXSP_chkpoint > /tmp/diff_EXSP.txt
+#for prometheus
+echo $lag_min_EXSP_chkpoint >   /zabbix/logs/diff_EXSP.txt
+#lag at checkpoint  for EXCB
+
+hour_EXCB_chkpoint=`cat /tmp/test.txt|grep EXCB|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXCB_chkpoint=`cat /tmp/test.txt|grep EXCB|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXCB_chkpoint=$((hour_EXCB_chkpoint * 60))
+lag_min_EXCB_chkpoint=$((hour_tomin_EXCB_chkpoint + min_EXCB_chkpoint))
+echo $lag_min_EXCB_chkpoint > /tmp/diff_EXCB.txt
+
+#for prometheus
+
+#lag at checkpoint  for EXCT
+
+hour_EXCT_chkpoint=`cat /tmp/test.txt|grep EXCT|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXCT_chkpoint=`cat /tmp/test.txt|grep EXCT|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXCT_chkpoint=$((hour_EXCT_chkpoint * 60))
+lag_min_EXCT_chkpoint=$((hour_tomin_EXCT_chkpoint + min_EXCT_chkpoint))
+echo $lag_min_EXCT_chkpoint > /tmp/diff_EXCT.txt
+
+
+#for prometheus
+
+#lag at checkpoint  for EXKC
+
+hour_EXKC_chkpoint=`cat /tmp/test.txt|grep EXKC|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXKC_chkpoint=`cat /tmp/test.txt|grep EXKC|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXKC_chkpoint=$((hour_EXKC_chkpoint * 60))
+lag_min_EXKC_chkpoint=$((hour_tomin_EXKC_chkpoint + min_EXKC_chkpoint))
+echo $lag_min_EXKC_chkpoint > /tmp/diff_EXKC.txt
+
+#for prometheus
+#lag at checkpoint  for EXMA
+
+hour_EXMA_chkpoint=`cat /tmp/test.txt|grep EXMA|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXMA_chkpoint=`cat /tmp/test.txt|grep EXMA|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXMA_chkpoint=$((hour_EXMA_chkpoint * 60))
+lag_min_EXMA_chkpoint=$((hour_tomin_EXMA_chkpoint + min_EXMA_chkpoint))
+echo $lag_min_EXMA_chkpoint > /tmp/diff_EXMA.txt
+
+#for prometheus
+#lag at checkpoint  for EXMD
+
+hour_EXMD_chkpoint=`cat /tmp/test.txt|grep EXMD|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXMD_chkpoint=`cat /tmp/test.txt|grep EXMD|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXMD_chkpoint=$((hour_EXMD_chkpoint * 60))
+lag_min_EXMD_chkpoint=$((hour_tomin_EXMD_chkpoint + min_EXMD_chkpoint))
+echo $lag_min_EXMD_chkpoint > /tmp/diff_EXMD.txt
+
+#for prometheus
+#lag at checkpoint  for EXMT
+
+hour_EXMT_chkpoint=`cat /tmp/test.txt|grep EXMT|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXMT_chkpoint=`cat /tmp/test.txt|grep EXMT|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXMT_chkpoint=$((hour_EXMT_chkpoint * 60))
+lag_min_EXMT_chkpoint=$((hour_tomin_EXMT_chkpoint + min_EXMT_chkpoint))
+echo $lag_min_EXMT_chkpoint > /tmp/diff_EXMT.txt
+
+#for prometheus
+#lag at checkpoint  for EXOR
+
+hour_EXOR_chkpoint=`cat /tmp/test.txt|grep EXOR|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXOR_chkpoint=`cat /tmp/test.txt|grep EXOR|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXOR_chkpoint=$((hour_EXOR_chkpoint * 60))
+lag_min_EXOR_chkpoint=$((hour_tomin_EXOR_chkpoint + min_EXOR_chkpoint))
+echo $lag_min_EXOR_chkpoint > /tmp/diff_EXOR.txt
+#for prometheus
+
+
+#lag at checkpoint  for EXPF
+
+hour_EXPF_chkpoint=`cat /tmp/test.txt|grep EXPF|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXPF_chkpoint=`cat /tmp/test.txt|grep EXPF|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXPF_chkpoint=$((hour_EXSP_chkpoint * 60))
+lag_min_EXPF_chkpoint=$((hour_tomin_EXPF_chkpoint + min_EXPF_chkpoint))
+echo $lag_min_EXPF_chkpoint > /tmp/diff_EXPF.txt
+
+#for prometheus
+
+#lag at checkpoint  for EXSO
+
+hour_EXSO_chkpoint=`cat /tmp/test.txt|grep EXSO|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXSO_chkpoint=`cat /tmp/test.txt|grep EXSO|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXSO_chkpoint=$((hour_EXSO_chkpoint * 60))
+lag_min_EXSO_chkpoint=$((hour_tomin_EXSO_chkpoint + min_EXSO_chkpoint))
+echo $lag_min_EXSO_chkpoint > /tmp/diff_EXSO.txt
+#for prometheus
+
+#lag at checkpoint  for EXSP
+
+hour_EXSP_chkpoint=`cat /tmp/test.txt|grep EXSP|awk '{print $4}'|awk -F: '{print $1}'`
+min_EXSP_chkpoint=`cat /tmp/test.txt|grep EXSP|awk '{print $4}'|awk -F: '{print $2}'`
+hour_tomin_EXSP_chkpoint=$((hour_EXSP_chkpoint * 60))
+lag_min_EXSP_chkpoint=$((hour_tomin_EXSP_chkpoint + min_EXSP_chkpoint))
+echo $lag_min_EXSP_chkpoint > /tmp/diff_EXSP.txt
+#for prometheus
+#time since checkpoint  for EXCB
+
+hour_EXCB_chkpoint_tsch=`cat /tmp/test.txt|grep EXCB|awk '{print $5}'|awk -F: '{print $1}'`
+min_EXCB_chkpoint_tsch=`cat /tmp/test.txt|grep EXCB|awk '{print $5}'|awk -F: '{print $2}'`
+hour_tomin_EXCB_chkpoint_tsch=$((hour_EXCB_chkpoint_tsch * 60))
+lag_min_EXCB_chkpoint_tsch=$((hour_tomin_EXCB_chkpoint_tsch + min_EXCB_chkpoint_tsch))
+echo $lag_min_EXCB_chkpoint_tsch > /tmp/difftsch_EXCB.txt
+echo $lag_min_EXCB_chkpoint_tsch > /zabbix/logs/difftsch_EXCB.txt
+#for prometheus
+#time since checkpoint  for EXCT
+
+hour_EXCT_chkpoint_tsch=`cat /tmp/test.txt|grep EXCT|awk '{print $5}'|awk -F: '{print $1}'`
+min_EXCT_chkpoint_tsch=`cat /tmp/test.txt|grep EXCT|awk '{print $5}'|awk -F: '{print $2}'`
+hour_tomin_EXCT_chkpoint_tsch=$((hour_EXCT_chkpoint_tsch * 60))
+lag_min_EXCT_chkpoint_tsch=$((hour_tomin_EXCT_chkpoint_tsch + min_EXCT_chkpoint_tsch))
+echo $lag_min_EXCT_chkpoint_tsch > /tmp/difftsch_EXCT.txt
+#for prometheus
+echo $lag_min_EXCT_chkpoint_tsch >   /zabbix/logs/difftsch_EXCT.txt
+#time since checkpoint  for EXKC
+
+hour_EXKC_chkpoint_tsch=`cat /tmp/test.txt|grep EXKC|awk '{print $5}'|awk -F: '{print $1}'`
+min_EXKC_chkpoint_tsch=`cat /tmp/test.txt|grep EXKC|awk '{print $5}'|awk -F: '{print $2}'`
+hour_tomin_EXKC_chkpoint_tsch=$((hour_EXKC_chkpoint_tsch * 60))
+lag_min_EXKC_chkpoint_tsch=$((hour_tomin_EXKC_chkpoint_tsch + min_EXKC_chkpoint_tsch))
+echo $lag_min_EXKC_chkpoint_tsch > /tmp/difftsch_EXKC.txt
+echo $lag_min_EXKC_chkpoint_tsch > /zabbix/logs/difftsch_EXKC.txt
+#for prometheus
+#time since checkpoint  for EXMA
+
+hour_EXMA_chkpoint_tsch=`cat /tmp/test.txt|grep EXMA|awk '{print $5}'|awk -F: '{print $1}'`
+min_EXMA_chkpoint_tsch=`cat /tmp/test.txt|grep EXMA|awk '{print $5}'|awk -F: '{print $2}'`
+hour_tomin_EXMA_chkpoint_tsch=$((hour_EXMA_chkpoint_tsch * 60))
+lag_min_EXMA_chkpoint_tsch=$((hour_tomin_EXMA_chkpoint_tsch + min_EXMA_chkpoint_tsch))
+echo $lag_min_EXMA_chkpoint_tsch > /tmp/difftsch_EXMA.txt
+#for prometheus
+echo $lag_min_EXMA_chkpoint_tsch > /zabbix/logs/difftsch_EXMA.txt
+#time since checkpoint  for EXMD
+
+hour_EXMD_chkpoint_tsch=`cat /tmp/test.txt|grep EXMD|awk '{print $5}'|awk -F: '{print $1}'`
+min_EXMD_chkpoint_tsch=`cat /tmp/test.txt|grep EXMD|awk '{print $5}'|awk -F: '{print $2}'`
+hour_tomin_EXMD_chkpoint_tsch=$((hour_EXMD_chkpoint_tsch * 60))
+lag_min_EXMD_chkpoint_tsch=$((hour_tomin_EXMD_chkpoint_tsch + min_EXMD_chkpoint_tsch))
+echo $lag_min_EXMD_chkpoint_tsch > /tmp/difftsch_EXMD.txt
+#for prometheus
+echo $lag_min_EXMD_chkpoint_tsch > /zabbix/logs/difftsch_EXMD.txt
+#time since checkpoint  for EXMT
+
+hour_EXMT_chkpoint_tsch=`cat /tmp/test.txt|grep EXMT|awk '{print $5}'|awk -F: '{print $1}'`
+min_EXMT_chkpoint_tsch=`cat /tmp/test.txt|grep EXMT|awk '{print $5}'|awk -F: '{print $2}'`
+hour_tomin_EXMT_chkpoint_tsch=$((hour_EXMT_chkpoint_tsch * 60))
+lag_min_EXMT_chkpoint_tsch=$((hour_tomin_EXMT_chkpoint_tsch + min_EXMT_chkpoint_tsch))
+echo $lag_min_EXMT_chkpoint_tsch > /tmp/difftsch_EXMT.txt
+#for prometheus
+echo $lag_min_EXMT_chkpoint_tsch > /zabbix/logs/difftsch_EXMT.txt
+#time since checkpoint  for EXOR
+
+hour_EXOR_chkpoint_tsch=`cat /tmp/test.txt|grep EXOR|awk '{print $5}'|awk -F: '{print $1}'`
+min_EXOR_chkpoint_tsch=`cat /tmp/test.txt|grep EXOR|awk '{print $5}'|awk -F: '{print $2}'`
+hour_tomin_EXOR_chkpoint_tsch=$((hour_EXOR_chkpoint_tsch * 60))
+lag_min_EXOR_chkpoint_tsch=$((hour_tomin_EXOR_chkpoint_tsch + min_EXOR_chkpoint_tsch))
+echo $lag_min_EXOR_chkpoint_tsch > /tmp/difftsch_EXOR.txt
+echo $lag_min_EXOR_chkpoint_tsch >  /zabbix/logs/difftsch_EXOR.txt
+#for prometheus
+
+#time since checkpoint  for EXPF
+
+hour_EXPF_chkpoint_tsch=`cat /tmp/test.txt|grep EXPF|awk '{print $5}'|awk -F: '{print $1}'`
+min_EXPF_chkpoint_tsch=`cat /tmp/test.txt|grep EXPF|awk '{print $5}'|awk -F: '{print $2}'`
+hour_tomin_EXPF_chkpoint_tsch=$((hour_EXSP_chkpoint_tsch * 60))
+lag_min_EXPF_chkpoint_tsch=$((hour_tomin_EXPF_chkpoint_tsch + min_EXPF_chkpoint_tsch))
+echo $lag_min_EXPF_chkpoint_tsch > /tmp/difftsch_EXPF.txt
+#for prometheus
+echo $lag_min_EXPF_chkpoint_tsch >  /zabbix/logs/difftsch_EXPF.txt
+
+#time since checkpoint  for EXSO
+
+hour_EXSO_chkpoint_tsch=`cat /tmp/test.txt|grep EXSO|awk '{print $5}'|awk -F: '{print $1}'`
+min_EXSO_chkpoint_tsch=`cat /tmp/test.txt|grep EXSO|awk '{print $5}'|awk -F: '{print $2}'`
+hour_tomin_EXSO_chkpoint_tsch=$((hour_EXSO_chkpoint_tsch * 60))
+lag_min_EXSO_chkpoint_tsch=$((hour_tomin_EXSO_chkpoint_tsch + min_EXSO_chkpoint_tsch))
+echo $lag_min_EXSO_chkpoint_tsch > /tmp/difftsch_EXSO.txt
+
+echo $lag_min_EXSO_chkpoint_tsch >  /zabbix/logs/difftsch_EXSO.txt
+#for prometheus
+#time since checkpoint  for EXSP
+
+hour_EXSP_chkpoint_tsch=`cat /tmp/test.txt|grep EXSP|awk '{print $5}'|awk -F: '{print $1}'`
+min_EXSP_chkpoint_tsch=`cat /tmp/test.txt|grep EXSP|awk '{print $5}'|awk -F: '{print $2}'`
+hour_tomin_EXSP_chkpoint_tsch=$((hour_EXSP_chkpoint_tsch * 60))
+lag_min_EXSP_chkpoint_tsch=$((hour_tomin_EXSP_chkpoint_tsch + min_EXSP_chkpoint_tsch))
+echo $lag_min_EXSP_chkpoint_tsch > /tmp/difftsch_EXSP.txt
+
+echo $lag_min_EXSP_chkpoint_tsch >  /zabbix/logs/difftsch_EXSP.txt
+#for prometheus
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
