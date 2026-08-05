@@ -1,0 +1,1 @@
+SELECT OWNER,segment_type,segment_name, SUM(BYTES/1024/1024/1024) AS "Size(GB)" FROM DBA_SEGMENTS WHERE SEGMENT_TYPE='TABLE' GROUP BY OWNER,segment_type,segment_name ORDER BY "Size(GB)" DESC; 
