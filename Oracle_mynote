@@ -1,0 +1,1904 @@
+#############add online redo log###################
+alter database add log file group 4;
+select * from v$logfile;
+alter system set db_create_online_log_dest_1='FRA';
+
+#############archive#######################
+alter system set log_archive_dest_1 ='/u03/fra';
+alter system set log+_archive_dest_state_1=enable;
+archive log list;
+
+
+############backup to tape#################
+
+run {
+allocate channel c1 type sbt_tape;
+backup recovery area;
+}
+
+####################make archive log mode#######################
+shut immediate;
+startup mount;
+alter database archivelog;
+alter database open;
+
+bayad aval archive_dest_n ro ham pathesh ham sizesh bayad set shode bashe vagrana k mire defult ro mizare.
+vase disable kardan:
+alter database noarchivelog;
+select log_mode from v$database;
+
+archive log list;
+
+################change FRA location and Size########################
+alter system set log_archive_duplex_dest='';
+alter system set log_archive_dest='';
+alter system set db_recovery_file_dest='+FRA';
+alter system set db_recovery_file_dest_size=10G;
+
+################## drop database#################
+sql>startup mount exclusive;
+rman target /
+drop database;
+
+or with backup:
+drop database including backups;
+
+###############free fra#####################
+
+1.delete obsolete;
+2.alter system set db_recovery_file_dest_size=10G;
+3.select name,storage_size from v$restore_point;
+4.drop restore point gp1;
+5.alter database flashback off; stop generating flashback logs.
+6.in rman: delete noprompt archive log;
+7.delete noprompt backup of database;
+8.delete noprompt copy of database;
+
+#############image copy in Rman##########
+backup as copy database;
+
+restore and recover db with image copy of the file:
+
+report schema;
+list copy of datafile 6;
+alter databse datafile 6 offline;
+switch datafile 6 to copy;
+recover datafile 6;
+alter database datafile 6 online;
+
+
+
+####################change parameter "control files"################
+
+control_files=('+FRA/cdb1/conrolfile/control01.ctl','/home/oracle/oradata/control02.ctl')
+
+
+####################restorepoint#########################
+
+create restore point rp1;
+flashback database to rp1;
+
+create restore point gp1 guarantee flashback database;
+
+
+###############################rman commands########################
+backup as copy tablespace users;
+report obsoletes;
+delete obsoletes;
+
+
+list backup of database;
+list backupset;
+delete backupset 7;
+
+list archivelog all;
+delete archivelog from logseq=60 until logseq=61;
+
+
+find size of data files:
+
+select sum(bytes)/1024/1024 from dba_data_files;
+
+
+ find size of archive redo logs:
+select count(1),avg(blocks*block_size)/1024 MB from v$archived_log 
+where completion_time between sysdate-1 and sysdate;
+
+
+tag:
+backup database tag 'full'
+
+vase neveshtane log baraye rman:
+spool log to '/tmp/rman/backlog.f';
+spool log off
+
+
+ya :
+rman target / mslog /var/log/rman_logs/backup_${DATE}.log   << EOFI ya log   /var/log/rman_logs/backup_${DATE}.log 
+...
+...
+
+EOFI
+
+
+ya :
+
+spool log to '/tmp/rman/backuplog.f' append
+
+
+
+
+
+create password file:
+orapwd file=mydb_pwd
+after that you should restart the db.
+
+jaye backup ro begin:
+backup datafile 3 format '/u01/app1/oracle.../dbs.copy';
+
+mishe ye file .rcv besazim, hame chiz ro onja benevisim bad ono ejra kone:
+rman target / cmdfile file.csv
+
+
+
+
+auxiliary db: hamon standby db hast k ma ba rman behesh vase mishim baraye inke commande duplicate database ro bezanim or tablespace point in time recovery.
+
+rman auxiliary sys/pass@aux
+
+
+ma kolan 3 no connet darim:
+rman target sys/pass@trgt
+rman catalog rman/rman_password@catalog
+rman  
+
+mishe har 3 ro ham to ye khat goft:
+rman target sys/pass@trgt  catalog rman/rman_password@catalog auxiliary sys/sys_password@aux
+
+
+
+run{
+allocate channel t1 device type disk format '/u01/app/oracle/backup/%U';
+allocate channel t2 device type disk format /..........................;
+backup database;
+}
+
+
+
+
+########################################
+1) NOMOUNT stage=search for spfile in defualt location,read it,sga ,smon + pmon+lgwr 
+
+
+
+
+
+In the NOMOUNT stage, Oracle carries the following steps:
+
+First, search for a server parameter file in the default location. You can override the default behavior by using the SPFILE or PFILE parameters in the STARTUP command.
+Next, read the parameter file to get the values of the initialization parameters.
+Then, allocate the system global area (SGA) based on the initialization parameter settings.
+After that, start the Oracle background processes such as SMON, PMON, and LGWR.
+Finally, open the alert log and trace files and record all explicit parameters to the alert log in the valid parameter syntax.
+At the NOMOUNT stage, Oracle does not associate the database with the instance.
+
+2) MOUNT stage= db mount mishe yani aval mire az to spfile control file ro jasho peida mikone va mikhonesh
+bad control file khonde mishe k mire check mikone k datafile ha va online redoha kojan va ok hastan ya na.
+
+
+
+
+In the MOUNT stage, Oracle associates a database with an instance. In other words, the instance mounts the database.
+
+The instance carries the following steps to mount a database:
+
+First, get the name of the database control files specified in the CONTROL_FILE initialization parameter.
+Second, open the control files.
+Third, find the name of data files and the online redo log files.
+When a database is mounted, the database is only available to database administrators, not all users.
+
+3) OPEN stage=tablespace ha va undo tbs baz mishe va bad online redo ha baz mishe.
+In the OPEN stage, Oracle performs the following actions:
+
+First, open the online data files in tablespaces other than the undo tablespaces.
+Then, select an undo tablespace. The instance uses default undo tablespace if an undo tablespace is specified in the UNDO_TABLESPACE initialization parameter. Otherwise, it will select the first available undo tablespace.
+Finally, open the online redo log files.
+##################################################
+
+
+
+baraye check kardan syntax rman mishe in dastoor ro zad:
+
+
+
+
+
+
+
+rman checksyntax
+
+
+
+
+
+###################################
+zamani k bekhahim ye config rman ro cancel konim:
+configure backup optimization clear;
+
+
+
+
+
+######################
+change backup type:
+
+configure device type disk backup type to backupset;
+
+
+####################
+change to compressed backup set:
+
+configure device type disk backup type compressed backupset;
+
+################################
+desc v$rman_compression_algorithms:
+####################################33
+
+2 bar backup migire:
+
+configure datafile backup copies to device type disk to 2; in disk
+configure datafile backup copies to device type sbt to 2; in tape
+
+show datafile backup copies;
+show archivelog backup copies;
+
+
+
+age mogheik dare backup migire,on datafile einan to backup dg hast,on ro nemigire.
+configure backup optimization on/off;
+
+###############spfile recovery########################
+
+
+rman target /
+set dbid DB_ID
+startup force nomount
+restore spfiel frpm autpbackup;
+startup force; restart instance with the new server parameter file;
+
+
+####create user in sadad#######
+CREATE USER offpaya
+  IDENTIFIED BY offpaya123
+  DEFAULT TABLESPACE TBS_offpaya
+  TEMPORARY TABLESPACE TEMP
+  PROFILE DEFAULT
+  ACCOUNT UNLOCK;
+  
+  
+ALTER USER offpaya  DEFAULT ROLE ALL;
+
+
+GRANT CONNECT,resource TO offpaya;
+GRANT CREATE SESSION  to offpaya;
+GRANT CREATE SEQUENCE TO offpaya;
+GRANT CREATE TABLE TO offpaya;
+GRANT CREATE TRIGGER TO offpaya;
+GRANT CREATE ANY SEQUENCE TO offpaya;
+GRANT CREATE ANY TABLE TO offpaya;
+GRANT CREATE PROCEDURE TO offpaya;
+GRANT CREATE SESSION TO offpaya;
+GRANT CREATE SYNONYM TO offpaya;
+GRANT CREATE TABLE TO offpaya;
+GRANT CREATE VIEW TO offpaya;
+GRANT DEBUG CONNECT SESSION TO offpaya;
+GRANT EXECUTE ANY PROCEDURE TO offpaya;
+
+ALTER USER offpaya QUOTA UNLIMITED ON TBS_offpaya;
+grant alter any table to offpaya;
+grant alter  session to offpaya;
+
+GRANT SELECT ANY TABLE TO offpaya;
+GRANT SELECT ANY DICTIONARY TO offpaya;
+
+
+
+
+GRANT EXECUTE ON SYS.DBMS_ALERT TO offpaya;
+GRANT EXECUTE ON SYS.DBMS_LOCK TO offpaya;
+
+
+
+########find user in oracle#############
+select  CREATED,username,to_char(CREATED, 'yyyy/mm/dd hh24:mi', 'nls_calendar=persian') from dba_users 
+where username not in 
+(
+'VTM_ARCHIVE',
+'SDDSIPA',
+'SPINT',
+'SDDCARD',
+'DBSNMP'
+)
+order by 1 desc;
+
+
+######################lvm command#################
+create physical volumn:
+pv can be a partion on part of the partition.
+
+pvs =see all about partition volumn
+pvsdisplay: more detail than pvs
+
+pvcreate: pvcreate /dev/sdb
+pvremove: pvremove /dev/sdb
+
+after creating your pvs,create a volumn group
+vgs,vgdisplay,vgcreate,vgremove,vgextend,vgrename
+
+vgcreate vg1 /dev/sdb /dev/sdc
+vgreduce vg1 /dev/sdb
+vgextend vg1 /dev/sdb
+
+after creating vg ,we need to create logical volumn (inja ba vg ha kar darim)
+
+lvcreate -n lv01 vg01 -L 500M
+lvs
+lvremove vg01(esme voloumn group) lv01(esme logical volumn)
+
+mkfs.ext4 /dev/vg01/lv01
+
+hala agar bekhaym in logical volumn ro gonde tar konim
+aval bayad ye disk begirim k physical vomunesh konim
+dovom b vg ezafe konim
+vgextend vg01 /dev/sdx
+badesh bayad logical volumn ro extend konim:
+lvextend /dev/mapper/vg01-lv01 -L 5G
+resize2fs /dev/mapper/vg01-lv01
+
+BARAYE DISKHAYE BALAYE 2T :
+AVAL BA PARTED MIZZANI
+BAD BA FDISK ,PARTITION TYPE RO AVAZ MIKONI 8E
+
+*********************************************
+pvcreate /dev/sdb1
+vgdisplay
+vgcreate vgdata /dev/sdb1
+
+lvcreate -n lv_b1_13g -L 12.9G vgdata
+lvcreate -l 100%FREE -n lv_b1_13g vgadata
+
+lvs
+lvdisplay vgadata/lv_b1_13g
+
+
+
+mkfs.ext4 /dev/vgdata/lv_b1_13g
+
+mount /dev/vgdata/lv_b1_13g /data/
+
+############add tunnel##############
+
+go to putty 
+enter 192.168.240.11
+port 1082
+dynamic
+add kon
+
+##############add agent in silent mode in cloud control###################
+os: oracle linux 7.7
+em: 13.4 
+
+link:
+https://docs.oracle.com/en/enterprise-manager/cloud-control/enterprise-manager-cloud-control/13.4/emadv/installing-oracle-management-agent-silent-mode.html#GUID-4EE12986-7D27-4318-8112-86FF3F5C0254
+
+
+IN OMS HOST :
+
+su - oracle
+1.mkdir -p /u03/app/oracle/agent/agent_software 
+
+2.cd /u03/app/oracle/middleware/bin
+3.[oracle@oms bin]$ ./emcli login -username=sysman
+Enter password
+
+Login successful
+4.[oracle@oms bin]$ ./emcli sync
+Synchronized successfully
+5.[oracle@oms bin]$ ./emcli get_supported_platforms
+-----------------------------------------------
+Version = 13.4.0.0.0
+ Platform = Linux x86-64
+-----------------------------------------------
+Platforms list displayed successfully.
+You have new mail in /var/spool/mail/oracle
+
+
+6../emcli get_agentimage -destination=/u03/app/oracle/agent/agent_software  -platform="Linux x86-64" -version="13.4.0.0.0"
+
+
+cd /u03/app/oracle/agent/agent_software 
+
+[root@oms agent_software]# ll
+total 910448
+-rw-r--r-- 1 oracle oinstall 932297885 Sep 14 15:56 13.4.0.0.0_AgentCore_226.zip
+
+
+
+Executing command: /u03/app/oracle/agent/agent_software/unzip /u03/app/oracle/agent/agent_software/13.4.0.0.0_Plugins_226.zip -d /u03/app/oracle/agent/agent_software
+
+
+hala in file ro bayad be serveri k mikhahim be onvane host add konim b oem ,montaghel konim.
+
+
+
+7. toye oem:
+setup/security/registarion passwords
+
+create new :name is pass
+pass: Men@113393
+
+8.login to host that you want to add to oem
+
+mkdir -p /u03/app/oracle/agent/agent_software 
+ 
+put the file here:(13.4.0.0.0_AgentCore_226.zip)
+check permission
+next unzip it:
+
+unzip 13.4.0.0.0_AgentCore_226.zip -d /u03/app/oracle/agent/agent_software
+
+
+
+##########################ssh-keygen###################
+ssh-keygen
+ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.26.130
+
+
+
+##################deinstall and install gurad#################
+standby
+1.shutdown immediate;
+2.asmcmd with grid
+cd to sid
+ASMCMD [+] > cd DATA01/
+ASMCMD [+DATA01] > ls
+ASM/
+ccdg/
+orapwasm
+ASMCMD [+DATA01] > cd ccdg
+ASMCMD [+DATA01/ccdg] > ls
+8744D51AAE6C49D7E05372E9A8C0C316/
+874528F60CA756B4E05372E9A8C09383/
+CONTROLFILE/
+DATAFILE/
+ONLINELOG/
+PARAMETERFILE/
+TEMPFILE/
+ASMCMD [+DATA01/ccdg] > ls
+8744D51AAE6C49D7E05372E9A8C0C316/
+874528F60CA756B4E05372E9A8C09383/
+CONTROLFILE/
+DATAFILE/
+ONLINELOG/
+PARAMETERFILE/
+TEMPFILE/
+ASMCMD [+DATA01/ccdg] > rm CONTROLFILE DATAFILE ONLINELOG TEMPFILE
+ORA-15032: not all alterations performed
+ORA-15178: directory 'CONTROLFILE' is not empty; cannot drop this directory (DBD ERROR: OCIStmtExecute)
+ASMCMD [+DATA01/ccdg] >
+ASMCMD [+DATA01/ccdg] > ls
+8744D51AAE6C49D7E05372E9A8C0C316/
+874528F60CA756B4E05372E9A8C09383/
+CONTROLFILE/
+DATAFILE/
+ONLINELOG/
+PARAMETERFILE/
+TEMPFILE/
+ASMCMD [+DATA01/ccdg] > rm -rf CONTROLFILE DATAFILE ONLINELOG TEMPFILE
+ASMCMD [+DATA01/ccdg] > ls
+8744D51AAE6C49D7E05372E9A8C0C316/
+874528F60CA756B4E05372E9A8C09383/
+PARAMETERFILE/
+ASMCMD [+DATA01/ccdg] > mkdir CONTROLFILE DATAFILE ONLINELOG TEMPFILE
+ASMCMD [+DATA01/ccdg] > ls
+8744D51AAE6C49D7E05372E9A8C0C316/
+874528F60CA756B4E05372E9A8C09383/
+CONTROLFILE/
+DATAFILE/
+ONLINELOG/
+PARAMETERFILE/
+TEMPFILE/
+ASMCMD [+DATA01/ccdg] > cd 8744D51AAE6C49D7E05372E9A8C0C316
+ASMCMD [+DATA01/ccdg/8744D51AAE6C49D7E05372E9A8C0C316] > ls
+DATAFILE/
+TEMPFILE/
+ASMCMD [+DATA01/ccdg/8744D51AAE6C49D7E05372E9A8C0C316] > rm -rf DATAFILE TEMPFILE
+ASMCMD [+DATA01/ccdg/8744D51AAE6C49D7E05372E9A8C0C316] > ls
+ASMCMD [+DATA01/ccdg/8744D51AAE6C49D7E05372E9A8C0C316] > cd ..
+ASMCMD [+DATA01/ccdg] > ls
+8744D51AAE6C49D7E05372E9A8C0C316/
+874528F60CA756B4E05372E9A8C09383/
+CONTROLFILE/
+DATAFILE/
+ONLINELOG/
+PARAMETERFILE/
+TEMPFILE/
+ASMCMD [+DATA01/ccdg] > cd 8744D51AAE6C49D7E05372E9A8C0C316
+ASMCMD [+DATA01/ccdg/8744D51AAE6C49D7E05372E9A8C0C316] > mkdir DATAFILE TEMPFILE
+ASMCMD [+DATA01/ccdg/8744D51AAE6C49D7E05372E9A8C0C316] > ls
+DATAFILE/
+TEMPFILE/
+ASMCMD [+DATA01/ccdg/8744D51AAE6C49D7E05372E9A8C0C316] > cd ..
+ASMCMD [+DATA01/ccdg] > ls
+8744D51AAE6C49D7E05372E9A8C0C316/
+874528F60CA756B4E05372E9A8C09383/
+CONTROLFILE/
+DATAFILE/
+ONLINELOG/
+PARAMETERFILE/
+TEMPFILE/
+ASMCMD [+DATA01/ccdg] > cd 874528F60CA756B4E05372E9A8C09383
+ASMCMD [+DATA01/ccdg/874528F60CA756B4E05372E9A8C09383] > ls
+DATAFILE/
+TEMPFILE/
+ASMCMD [+DATA01/ccdg/874528F60CA756B4E05372E9A8C09383] > rm -rf DATAFILE/ TEMPFILE/
+ASMCMD [+DATA01/ccdg/874528F60CA756B4E05372E9A8C09383] > ls
+ASMCMD [+DATA01/ccdg/874528F60CA756B4E05372E9A8C09383] > cd ..
+ASMCMD [+DATA01/ccdg] > ls
+8744D51AAE6C49D7E05372E9A8C0C316/
+874528F60CA756B4E05372E9A8C09383/
+CONTROLFILE/
+DATAFILE/
+ONLINELOG/
+PARAMETERFILE/
+TEMPFILE/
+ASMCMD [+DATA01/ccdg] > cd 874528F60CA756B4E05372E9A8C09383
+ASMCMD [+DATA01/ccdg/874528F60CA756B4E05372E9A8C09383] > ls
+ASMCMD [+DATA01/ccdg/874528F60CA756B4E05372E9A8C09383] > mkdir DATAFILE TEMPFILE
+ASMCMD [+DATA01/ccdg/874528F60CA756B4E05372E9A8C09383] > ls
+DATAFILE/
+TEMPFILE/
+ASMCMD [+DATA01/ccdg/874528F60CA756B4E05372E9A8C09383] > exit
+[grid@VTM-STD ~]$ exit
+logout
+
+
+
+
+3.startup nomount;
+[oracle@VTM-STD dbhome_1]$ cd network/admin/
+[oracle@VTM-STD admin]$ ls
+samples  shrept.lst  tnsnames.ora
+[oracle@VTM-STD admin]$ cat tnsnames.ora
+# tnsnames.ora Network Configuration File: /u02/app/oracle/product/12.2.0/dbhome_1/network/admin/tnsnames.ora
+# Generated by Oracle configuration tools.
+
+LISTENER_CCDG =
+  (ADDRESS = (PROTOCOL = TCP)(HOST = VTM-STD.sadad)(PORT = 1521))
+
+CCDB =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = VTM-PRI.sadad)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SID = ccdb)
+    )
+  )
+
+CCDG =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = VTM-STD.sadad)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME  = ccdg)(UR = A)
+    )
+  )
+[oracle@VTM-STD admin]$ rman target sys@ccdb auxiliary sys@ccdg
+
+Recovery Manager: Release 12.2.0.1.0 - Production on Sat Jun 26 13:41:32 2021
+
+Copyright (c) 1982, 2017, Oracle and/or its affiliates.  All rights reserved.
+
+target database Password:
+connected to target database: CCDB (DBID=3634258716)
+auxiliary database Password:
+connected to auxiliary database: CCDB (not mounted)
+
+RMAN> DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER nofilenamecheck ;
+
+
+############fuser#################
+fuser -k Port_Number/tcp
+
+fuser -k 3872/tcp
+
+
+#################kill session ##########################
+SELECT 'alter system kill session '''|| SID || ',' || SERIAL# || ''' immediate ;'
+FROM v$session
+WHERE username = 'SYSMAN';
+
+
+###################multipath##########################
+cd /etc
+cp multipath.conf multipath.conf.bckcat 
+vi multipath.conf
+systemctl restart mutipath
+
+disk ha ro ba oracleasm isazim
+
+
+####################nasbe os######################
+/eteprocessord 4 ta 
+per 2
+ram 4G
+2 hard disk 
+70 d
+50 g for asm
+
+network host only
+kdump disable
+
+nasb minimale
+
+/boot 450M  ext4 standard partition
+swap 4G
+/ others  ext4 standard partition
+
+pass root:123456
+
+for network setting
+ vi /etc/sysconfig/network-scripts/ifcfg-ens33
+
+TYPE=Ethernet
+PROXY_METHOD=none
+BROWSER_ONLY=no
+BOOTPROTO=static
+#DEFROUTE=yes
+#IPV4_FAILURE_FATAL=no
+#IPV6INIT=yes
+#IPV6_AUTOCONF=yes
+#IPV6_DEFROUTE=yes
+#IPV6_FAILURE_FATAL=no
+#IPV6_ADDR_GEN_MODE=stable-privacy
+NAME=ens33
+UUID=bd2da7f3-0110-48c0-8dfa-f8785e5b4756
+DEVICE=ens33
+ONBOOT=yes
+#IPV6_PRIVACY=no
+IPADDR=192.168.204.30
+NETMASK=255.255.255.0
+GATEWAY=192.168.204.1
+
+
+
+##############
+systemctl restart network
+reboot
+
+
+
+################oracle installation #######################
+root
+systemctl restart network
+systemctl status network
+systemctl status network.service
+
+  
+##################################
+hostnamectl set-hostname primary
+##################################
+vi /etc/hosts
+add this line:
+192.168.204.30   primary
+
+##################################
+
+mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bk
+
+
+vi /etc/yum.repos.d/public-yum-ol7.repo   ##for oracle linux installation
+[ol7_latest]
+name=Oracle Linux $releasever Latest ($basearch)
+baseurl=file:///media/DVD
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oracle
+gpgcheck=0
+enabled=1
+
+vi /etc/yum.repos.d/CentOS-Base.repo  ### for centos installation
+[centos7]
+name=CentOS-$releasever - Base
+baseurl=file:///media/DVD
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+gpgcheck=1
+enabled=1
+
+mkdir /media/DVD
+
+mount -t iso9660 -o loop /root/OracleLinux-R7-U6-Server-x86_64-dvd.iso /media/DVD
+mount -t iso9660 -o loop /home/CentOS-7_7-x86_64-DVD-1908.iso /media/DVD
+
+
+#for oracle linux 8:
+[ol8_baseos]
+name=Oracle Linux $releasever Latest ($basearch)
+baseurl=file:///media/DVD/BaseOS
+gpgcheck=0
+enabled=1
+
+[ol8_appstream]
+name=Oracle Linux $releasever Latest ($basearch)
+baseurl=file:///media/DVD/AppStream
+gpgcheck=0
+enabled=1
+
+
+and for oracle linux 8.10:
+[root@ords yum.repos.d]# ll
+total 12
+drwxr-xr-x. 2 root root   47 Jul  7 13:07 old
+-rw-r--r--. 1 root root  239 Jul  7 13:10 oracle-linux-ol8.repo
+-rw-r--r--. 1 root root 4107 Jul  7 12:30 oracle-linux-ol8.repo.backup
+[root@ords yum.repos.d]# cd old/
+[root@ords old]# ll
+total 8
+-rw-r--r--. 1 root root 941 Jun 29 16:25 uek-ol8.repo
+-rw-r--r--. 1 root root 243 May 23  2024 virt-ol8.repo
+
+
+and for oracle linux 8.10:
+[root@ords old]# dnf repolist
+repo id                                                                            repo name
+ol8_appstream                                                                      Oracle Linux 8 Latest (x86_64)
+ol8_baseos                                                                         Oracle Linux 8 Latest (x86_64)
+
+
+
+yum install binutils compat-libcap1 compat-libstdc++-33 cloog-ppl cpp chrony gcc gcc-c++ glibc glibc-devel glibc-headers ksh kernel-headers libgcc libstdc++ libstdc++-devel libaio libaio-devel libdmx libXext libXtst libX11 libXau libxcb libXi libXxf86misc make mpfr sysstat libXmu libXt libXv libXxf86dga libdmx libXxf86misc libXxf86vm xorg-x11-utils xorg-x11-xauth nfs-utils smartmontools ntp unzip net-tools.x86_64 -y
+cp these rpm to directory k iso hast
+
+
+yum install pciutils
+yum install sysfsutils
+####yum install rlwrap-0.43-2.el7.x86_64.rpm  (to keep history in sqlplus)
+
+yum install system-storage-manager
+yum -y install device-mapper-multipath
+-------------------------vase oracle linux-------------------------------
+yum install kmod-oracleasm.x86_64 oracleasm-support.x86_64
+
+---------------------------vase centos---------------------------------------------------------
+rpm -ivh oracleasm-support-2.1.11-2.el7.x86_64.rpm
+rpm -Uvh --nodeps --force oracleasmlib-2.0.12-1.el7.x86_64.rpm
+rpm -ivh kmod-oracleasm-2.0.8-26.el7.x86_64.rpm
+
+--new--  (nemikhad)
+ 72  yum install kmod-oracleasm
+   73  yum install oracleasmlib
+   74  yum install oracleasm-support
+
+*****************************************************************
+vi /etc/chrony.conf (agar testiye va server ntp ya chrony nadarim ,nemikhad in neveshte beshe)
+
+chronyc sources
+-------TAHESH------------
+server 10.5.26.10 iburst
+-------------------------
+systemctl start chronyd.service
+systemctl enable chronyd.service
+systemctl status chronyd.service
+
+
+
+vi /etc/selinux/config
+		SELINUX=disabled
+
+
+
+firewall-cmd --state
+systemctl stop firewalld
+systemctl disable firewalld
+systemctl mask --now firewalld
+##################################
+ vi /etc/sysctl.conf
+fs.file-max = 6815744
+
+vi /etc/sysctl.d/99-sysctl.conf
+fs.file-max = 6815744
+
+##########################################################################
+vi /etc/sysctl.d/98-oracle-kernel.conf
+###############ASLi###################
+kernel.sem = 250 32000 100 128
+kernel.shmall = 2251799813685247
+fs.file-max = 6815744
+net.ipv4.ip_local_port_range =9000  65500
+net.core.rmem_default = 262144
+net.core.rmem_max = 4194304
+net.core.wmem_default = 262144
+net.core.wmem_max = 1048576
+fs.aio-max-nr = 1048576
+vm.max_map_count=200000
+vm.swappiness = 1
+vm.dirty_background_ratio = 3
+vm.dirty_ratio = 80
+vm.dirty_expire_centisecs = 500
+vm.dirty_writeback_centisecs = 100
+##########################################
+
+sysctl -p /etc/sysctl.d/98-oracle-kernel.conf
+
+
+
+
+##################################
+vi /etc/security/limits.d/50-oracle.conf
+
+oracle            hard    stack          32768
+oracle            soft    stack          10240
+oracle            hard    nofile         65536
+oracle            soft     memlock         unlimited
+oracle            hard     memlock         unlimited
+
+vi /etc/security/limits.d/51-grid.conf
+grid soft nproc 2047
+grid hard nproc 16384
+grid soft nofile 1024
+grid hard nofile 65536
+grid soft stack 10240
+grid hard stack 32768
+
+
+
+##################################
+
+
+groupadd --gid 54321 oinstall
+groupadd --gid 54322 dba
+groupadd --gid 54323 asmdba
+groupadd --gid 54324 asmoper
+groupadd --gid 54325 asmadmin
+groupadd --gid 54326 oper
+groupadd --gid 54327 backupdba
+groupadd --gid 54328 dgdba
+groupadd --gid 54329 kmdba
+useradd --uid 54321 --gid oinstall --groups dba,oper,asmdba,backupdba,dgdba,kmdba oracle
+passwd oracle
+useradd --uid 54322 --gid oinstall --groups dba,asmadmin,asmdba,asmoper  grid
+passwd grid
+	
+##################################
+reboot
+##################################
+
+
+
+
+
+
+
+
+
+/usr/sbin/oracleasm configure -i
+	Default user to own the driver interface []: grid
+	Default group to own the driver interface []: asmadmin
+	Start Oracle ASM library driver on boot (y/n) [n]: y
+	Scan for Oracle ASM disks on boot (y/n) [y]: y
+
+
+oracleasm init
+systemctl start oracleasm
+systemctl status oracleasm
+systemctl restart oracleasm
+
+
+
+fdisk disk o parted o ina ......
+disk 50 gigi baraye asm gozshtam kenar .sdb
+ fdisk /dev/sdb
+ n
+ p
+ 
+ 
+ w
+ 
+
+
+
+
+/usr/sbin/oracleasm createdisk DATA02 /dev/sdc1
+
+oracleasm scandisks
+oracleasm listdisks
+##################################
+mkdir /u01
+mkdir /u02
+chown grid:oinstall -R /u01
+
+chown oracle:oinstall -R /u02
+
+
+
+*****************************************************
+grid user 
+mkdir -p /u01/app/grid
+mkdir -p /u01/app/grid/grid-software
+
+bash profile  for grid
+##################################
+# .bash_profile
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+        . ~/.bashrc
+fi
+
+# User specific environment and startup programs
+
+ORACLE_BASE=/u01/app/grid; export ORACLE_BASE
+ORACLE_HOME=/u01/app/grid/grid-software; export ORACLE_HOME
+ORACLE_SID=+ASM; export ORACLE_SID
+TNS_ADMIN=$ORACLE_HOME/network/admin; export TNS_ADMIN
+
+
+PATH=$PATH:$HOME/.local/bin:$HOME/bin:$ORACLE_HOME/bin:$ORACLE_HOME/OPatch
+
+export PATH
+##################################
+cp to ORACLE_HOME
+unzip grid software to grid home
+./gridsetup
+
+
+##################################
+
+su - oracle
+cp software oracle to /home/oracle  Iosec600   Iosec600
+check permition of file to oracle:oinstall 
+
+
+#####bash profile for oracle#####
+
+
+###################
+oracle profile
+# .bash_profile
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+        . ~/.bashrc
+fi
+
+# User specific environment and startup programs
+
+ORACLE_BASE=/u02/app/oracle; export ORACLE_BASE
+ORACLE_HOME=$ORACLE_BASE/product/12.2.0/db_1; export ORACLE_HOME
+ORACLE_SID=amlds;export ORACLE_SID
+#TNS_ADMIN=$ORACLE_HOME/network/admin; export TNS_ADMIN
+
+
+PATH=$PATH:$HOME/.local/bin:$HOME/bin:$ORACLE_HOME/bin:$ORACLE_HOME/OPatch
+
+export PATH
+#export PS1='[\u@\h \W] <$ORACLE_SID> \$ '
+
+
+
+unzip software
+cd database
+./runinstaller
+
+
+#############################page huge#############################
+ll /dev/mapper/
+
+[root@aml-pri ~]# ll /dev/ | grep 8 | grep 17
+brw-rw----   1 root disk      8,  17 Oct 13 09:31 sdb1
+brw-rw----   1 root disk     68,  17 Oct 13 09:31 sdbn1
+brw-rw----   1 root disk      8, 176 Oct 13 09:31 sdl
+brw-rw----   1 root disk      8, 177 Oct 13 09:31 sdl1
+
+
+[root@aml-pri ~]# lscpu
+
+[root@aml-pri ~]# free -k
+              total        used        free      shared  buff/cache   available
+Mem:     1056459668     1464512  1054636604       11988      358552  1051518976
+Swap:       4193276           0     4193276
+
+
+
+vi /etc/security/limits.d/99-grid-oracle-limits.conf
+
+oracle soft nproc 16384
+oracle hard nproc 16384
+oracle soft nofile 4096
+oracle hard nofile 65536
+oracle soft stack 10240
+oracle hard stack 32768
+##The following parameters are needed for huge-page
+oracle soft memlock 1056459668
+oracle hard memlock 1056459668
+grid soft nproc 2047
+grid hard nproc 16384
+grid soft nofile 1024
+grid hard nofile 65536
+grid soft stack 10240
+grid hard stack 32768
+
+
+
+[root@aml-pri ~]# cat /etc/sysconfig/oracleasm
+#
+# This is a configuration file for automatic loading of the Oracle
+# Automatic Storage Management library kernel driver.  It is generated
+# By running /etc/init.d/oracleasm configure.  Please use that method
+# to modify this file
+#
+
+# ORACLEASM_ENABLED: 'true' means to load the driver on boot.
+ORACLEASM_ENABLED=true
+
+# ORACLEASM_UID: Default user owning the /dev/oracleasm mount point.
+ORACLEASM_UID=grid
+
+# ORACLEASM_GID: Default group owning the /dev/oracleasm mount point.
+ORACLEASM_GID=asmadmin
+
+# ORACLEASM_SCANBOOT: 'true' means scan for ASM disks on boot.
+ORACLEASM_SCANBOOT=true
+
+# ORACLEASM_SCANORDER: Matching patterns to order disk scanning
+ORACLEASM_SCANORDER=""
+
+# ORACLEASM_SCANEXCLUDE: Matching patterns to exclude disks from scan
+ORACLEASM_SCANEXCLUDE=""
+
+# ORACLEASM_SCAN_DIRECTORIES: Scan disks under these directories
+ORACLEASM_SCAN_DIRECTORIES=""
+
+# ORACLEASM_USE_LOGICAL_BLOCK_SIZE: 'true' means use the logical block size
+# reported by the underlying disk instead of the physical. The default
+# is 'false'
+ORACLEASM_USE_LOGICAL_BLOCK_SIZE=false
+
+
+
+root@aml-pri ~]# vi /etc/sysconfig/oracleasm
+
+
+#
+# This is a configuration file for automatic loading of the Oracle
+# Automatic Storage Management library kernel driver.  It is generated
+# By running /etc/init.d/oracleasm configure.  Please use that method
+# to modify this file
+#
+
+# ORACLEASM_ENABLED: 'true' means to load the driver on boot.
+ORACLEASM_ENABLED=true
+
+# ORACLEASM_UID: Default user owning the /dev/oracleasm mount point.
+ORACLEASM_UID=grid
+
+# ORACLEASM_GID: Default group owning the /dev/oracleasm mount point.
+ORACLEASM_GID=asmadmin
+
+# ORACLEASM_SCANBOOT: 'true' means scan for ASM disks on boot.
+ORACLEASM_SCANBOOT=true
+
+# ORACLEASM_SCANORDER: Matching patterns to order disk scanning
+ORACLEASM_SCANORDER="dm"
+
+# ORACLEASM_SCANEXCLUDE: Matching patterns to exclude disks from scan
+ORACLEASM_SCANEXCLUDE="sd"
+
+# ORACLEASM_SCAN_DIRECTORIES: Scan disks under these directories
+ORACLEASM_SCAN_DIRECTORIES=""
+
+# ORACLEASM_USE_LOGICAL_BLOCK_SIZE: 'true' means use the logical block size
+# reported by the underlying disk instead of the physical. The default
+# is 'false'
+ORACLEASM_USE_LOGICAL_BLOCK_SIZE=false
+
+
+[root@aml-pri ~]# ll /dev/oracleasm/disks/
+
+
+
+[root@aml-pri ~]# ll /dev | grep 252
+
+
+[root@aml-pri ~]# mount -o loop /media/OracleLinux-R7-U7-Server-x86_64-dvd.iso /media/DVD
+
+[root@aml-pri ~]# yum install vim unzip
+
+[root@aml-pri ~]# yum install bc
+
+[root@aml-pri ~]# yum install zip unzip
+
+[root@aml-pri ~]# echo "300*1024/2" |bc
+153600
+
+[root@aml-pri ~]# sysctl -a | grep nr_huge
+
+sysctl: reading key "net.ipv6.conf.all.stable_secret"
+sysctl: reading key "net.ipv6.conf.default.stable_secret"
+sysctl: reading key "net.ipv6.conf.eno49.stable_secret"
+sysctl: reading key "net.ipv6.conf.eno50.stable_secret"
+sysctl: reading key "net.ipv6.conf.ens6f0.stable_secret"
+sysctl: reading key "net.ipv6.conf.ens6f1.stable_secret"
+sysctl: reading key "net.ipv6.conf.ens6f2.stable_secret"
+sysctl: reading key "net.ipv6.conf.ens6f3.stable_secret"
+sysctl: reading key "net.ipv6.conf.lo.stable_secret"
+vm.nr_hugepages = 0
+vm.nr_hugepages_mempolicy = 0
+
+
+
+vi /etc/sysctl.conf
+
+# sysctl settings are defined through files in
+# /usr/lib/sysctl.d/, /run/sysctl.d/, and /etc/sysctl.d/.
+#
+# Vendors settings live in /usr/lib/sysctl.d/.
+# To override a whole file, create a new file with the same in
+# /etc/sysctl.d/ and put new settings there. To override
+# only specific settings, add a file with a lexically later
+# name in /etc/sysctl.d/ and put new settings there.
+#
+# For more information, see sysctl.conf(5) and sysctl.d(5).
+fs.file-max = 6815744
+
+vm.nr_hugepages = 155400
+
+[root@aml-pri ~]# sysctl -p
+fs.file-max = 6815744
+vm.nr_hugepages = 155400
+
+
+[root@aml-pri ~]# cat /proc/meminfo | grep -i huge
+AnonHugePages:    192512 kB
+ShmemHugePages:        0 kB
+HugePages_Total:   155400
+HugePages_Free:    155400
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+
+
+[root@aml-pri ~]# free -g
+              total        used        free      shared  buff/cache   available
+Mem:           1007         304         699           0           3         698
+Swap:             3           0           3
+
+####################mpath##################
+
+baraye check kardane  HBA ?
+
+ls /sys/class/fc_host
+
+host2  host3
+
+-------------------------------------------------------------------
+baraye check kardane etesad va adame tesal :
+
+cat /sys/class/fc_host/host?/port_state
+
+Online
+Online
+-------------------------------------------------------------------
+signal scan
+
+# echo "1" > /sys/class/fc_host/host??/issue_lip
+# echo "- - -" > /sys/class/scsi_host/host??/scan
+
+
+-------------------------------------------------------------------
+baraye didane LUN va SANDISK ha
+
+cat /proc/scsi/scsi
+
+------------------------------------------------------------------
+baraye didane FC id :
+
+cat /sys/class/fc_host/host2/port_name
+cat  /sys/class/fc_host/host?/device/fc_host/host2/port_name
+
+------------------------------------------------------------------
+installation multipath :
+yum install device-mapper-multipath.x86_64
+
+baraye roshan boodan bad az restart:
+chkconfig multipathd on
+------------------------------------------------------------------
+start multipath:
+service multipathd start
+===========baraye 7 mohem ================================
+
+  950  systemctl stop multipathd
+  951  systemctl start multipathd
+  952  systemctl status multipathd
+
+==================================================
+------------------------------------------------------------------
+baraye wwid:
+
+multipath -ll
+------------------------------------------------------------------
+scan LUN ha :
+# echo "1" > /sys/class/fc_host/host?/issue_lip
+# service multipathd reload
+
+------------------------------------------------------------------
+
+baraye config multipath :
+vi /etc/multipath.conf
+
+#       device {
+#               vendor  "IBM"
+#               product "S/390.*"
+#       }
+#}
+
+## Use user friendly names, instead of using WWIDs as names.
+#defaults {
+#       user_friendly_names yes
+#}
+##
+## Here is an example of how to configure some standard options.
+##
+#
+defaults {
+#       udev_dir                /dev
+        polling_interval        10
+        path_selector           "round-robin 0"
+        path_grouping_policy    multibus
+#       getuid_callout          "/lib/udev/scsi_id --whitelisted --device=/dev/%n"
+        prio                    alua
+        path_checker            readsector0
+        rr_min_io               100
+        max_fds                 8192
+        rr_weight               priorities
+        failback                immediate
+        no_path_retry           fail
+        user_friendly_names     yes
+}
+##
+## The wwid line in the following blacklist section is shown as an example
+## of how to blacklist devices by wwid.  The 2 devnode lines are the
+## compiled in default blacklist. If you want to blacklist entire types
+## of devices, such as all scsi devices, you should use a devnode line.
+## However, if you want to blacklist specific devices, you should use
+## a wwid line.  Since there is no guarantee that a specific device will
+## not change names on reboot (from /dev/sda to /dev/sdb for example)
+## devnode lines are not recommended for blacklisting specific devices.
+##
+blacklist {
+        wwid 3600508b1001c655892b862ddb2f98f84
+        devnode "^(ram|raw|loop|fd|md|dm-|sr|scd|st)[0-9]*"
+        devnode "^hd[a-z]"
+}
+multipaths {
+        multipath {
+                wwid                    36001438005df1a75000080000d430000
+                alias                   DATA
+        }
+        multipath {
+                wwid                    36001438005df1a750000800018d60000
+                alias                   DATA2
+    }
+}
+#devices {
+#       device {
+#               vendor                  "COMPAQ  "
+#               product                 "HSV110 (C)COMPAQ"
+#               path_grouping_policy    multibus
+#               getuid_callout          "/lib/udev/scsi_id --whitelisted --device=/dev/%n"
+#               path_checker            readsector0
+#               path_selector           "round-robin 0"
+#               hardware_handler        "0"
+#               failback                15
+#               rr_weight               priorities
+#               no_path_retry           queue
+#       }
+#       device {
+#               vendor                  "COMPAQ  "
+#               product                 "MSA1000         "
+#               path_grouping_policy    multibus
+#       }
+#}
+
+
+
+
+ls -1c /sys/class/fc_host/host*/*_name 2> /dev/null | xargs -I {} grep -H -v "ZzZz" {} | sort
+
+
+#####################database size##################
+select "Reserved_Space(GB)",
+       "Reserved_Space(GB)" - "Free_Space(GB)" "Used_Space(GB)",
+       "Free_Space(GB)"
+  from (select (select sum(bytes / (1024 * 1024 * 1024)) from dba_data_files) "Reserved_Space(GB)",
+               (select sum(bytes / (1024 * 1024 * 1024 )) from dba_free_space) "Free_Space(GB)"
+          from dual);
+
+select sum(bytes)/1024/1024/1024 from dba_segments;
+select sum(bytes)/1024/1024/1024 from cdb_segments;
+
+
+select "Reserved_Space(GB)",
+       "Reserved_Space(GB)" - "Free_Space(GB)" "Used_Space(GB)",
+       "Free_Space(GB)"
+  from (select (select sum(bytes / (1024 * 1024 * 1024)) from cdb_data_files) "Reserved_Space(GB)",
+               (select sum(bytes / (1024 * 1024 * 1024 )) from cdb_free_space) "Free_Space(GB)"
+          from dual);
+		  
+		  
+		  
+		  
+#############cdb tbs#########################
+select 'Tablespace_Name:' || df.A || ' ,T=' ||
+       df_u.totalspace || 'GB' || ' ,F=' || tf.freespace || 'GB' ||
+       ' ,Total=' || df.totalspace || 'GB' || ' ,Used=' ||
+       (df_u.totalspace - tf.freespace) || 'GB' || ' ,Free=' ||
+       (df.totalspace - (df_u.totalspace - tf.freespace)) || 'GB' ||
+       ' ,Used=' || round((100 * (df_u.totalspace - tf.freespace) /
+                          decode(df.totalspace, 0, 0.000001, df.totalspace)),
+                          1) || '%' || '          ' ||
+       decode(round((100 * (df_u.totalspace - tf.freespace) /
+                    decode(df.totalspace, 0, 0.000001, df.totalspace)),
+                    0) - 90,
+              abs(round((100 * (df_u.totalspace - tf.freespace) /
+                        decode(df.totalspace, 0, 0.000001, df.totalspace)),
+                        0) - 90),
+              decode(round((100 * (df_u.totalspace - tf.freespace) /
+                           decode(df.totalspace, 0, 0.000001, df.totalspace)),
+                           0) - 95,
+                     abs(round((100 * (df_u.totalspace - tf.freespace) /
+                               decode(df.totalspace,
+                                       0,
+                                       0.000001,
+                                       df.totalspace)),
+                               0) - 95),
+                     '(Critical)',
+                     '(Warning)'),
+              '(Normal)') || ' ' as "Noraml Tablespace Status"
+  from (select tablespace_name||con_id A,
+               round((sum(decode(autoextensible, 'YES', maxbytes, bytes)) /
+                     (1024 * 1024 * 1024)),
+                     1) TotalSpace
+          from cdb_data_files
+         group by tablespace_name||con_id) df,
+       (select tablespace_name||con_id B,
+               round((sum(bytes) / (1024 * 1024 * 1024)), 1) TotalSpace
+          from cdb_data_files
+         group by tablespace_name||con_id) df_u,
+       (select tablespace_name||con_id C,
+               round(sum(bytes) / (1024 * 1024 * 1024), 1) freespace
+          from cdb_free_space
+         group by tablespace_name||con_id) tf
+ where df.A = tf.C
+   and df.A = df_u.B
+ order by (df_u.totalspace - tf.freespace) /
+          decode(df.totalspace, 0, 0.000001, df.totalspace) desc;
+
+
+
+
+###############gurad check################
+select PROCESS,STATUS,SEQUENCE#,block# from v$managed_standby;
+
+ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL; cancel gurad
+
+alter database recover managed standby database disconnect nodelay; play gurad
+
+
+important view:
+select  from V$RECOVERY_FILE_DEST;
+
+select  from v$archive_dest;
+
+select * from v$dataguard_config;
+
+
+
+########################
+
+*****************************kill data pump job sessions*******************************************************
+
+SELECT * FROM DBA_DATAPUMP_JOBS;
+SELECT    'alter system  kill session '''
+       || sid
+       || ','
+       || serial#
+       || ',@'
+       || inst_id
+       || ''' immediate;'
+  FROM gv$session
+ WHERE action = 'SYS_EXPORT_SCHEMA_02';
+ 
+ **************************************************************************************************************
+ 
+######################add-rlwrap to db#######################
+
+
+
+
+1.by root: rpm -ivh rpmfile(file is in rpm directory)
+2.su - oracle
+vi .bash_profile
+add these lines
+
+alias sqlplus='rlwrap sqlplus'
+alias rman='rlwrap rman'
+alias lsnrctl='rlwrap lsnrctl'
+alias asmcmd='rlwrap asmcmd'
+alias expdp='rlwrap expdp'
+alias impdp='rlwrap impdp'
+
+
+. .bash_profile
+
+in grid add these lines to profile:
+alias lsnrctl='rlwrap lsnrctl'
+alias asmcmd='rlwrap asmcmd'
+
+in oracle linux 7.7
+mount iso to /media/dvd
+yum -y install perl
+yum -y install autoconf
+basesh rpm ro bezanid
+by root: rpm -ivh rpmfile(file is in rpm directory)
+
+######################################################
+setup HA fro mysql 5.7
+
+
+Doc for setup HA for mysql 5.7 on Centos 7.6
+mysql 5.7 already installed on master and slave databases.
+
+step 1:
+on master :
+ 
+first make your datadir(location of your database files)
+
+like:
+1.mkdir -p /Data/mysql
+cd /Data
+chown -R mysql:mysql mysql
+
+2.for binary log also, create the directory:
+cd /Data/mysql
+mkdir dirbinlog
+cd /Data/mysql 
+chown -R mysql:mysql dirbinlog
+
+3. add socket in /Data/mysql/mysql.sock
+
+
+add  these lines under [mysqld]:
+
+datadir=/Data/mysql
+socket=/Data/mysql/mysql.sock
+
+symbolic-links=0
+
+innodb_thread_concurrency = 0
+innodb_write_io_threads = 16
+innodb_read_io_threads = 16
+skip-name-resolve
+
+log-bin = /Data/mysql/dirbinlog/master-bin
+log-bin-index = /Data/mysql/dirbinlog/master-bin.index
+server-id = 1
+
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+
+[client]
+port=3306
+socket=/Data/mysql/mysql.sock
+
+########################################################################################
+
+step 2:
+on Master:
+create user for Replication:
+
+mysql>create user 'rep'@'%' identified by  'M#ysql456';
+mysql>SET SQL_LOG_BIN=0;
+mysql>alter USER 'rep'@'%' IDENTIFIED WITH sha256_password BY 'M#ysql456';
+mysql>GRANT REPLICATION SLAVE ON *.* TO    'rep'@'%';
+mysql>SET SQL_LOG_BIN=1;
+mysql>FLUSH PRIVILEGES;
+
+
+GRANT USAGE ON *.* TO    'rep'@'%';
+
+###############################################################################################
+step 3:
+step1-Install the software on both master and slave server
+
+unzip p25664633_410_Linux-x86-64.zip
+tar xvzf meb-4.1.0-el6-x86-64bit.tar.gz
+meb-4.1.0-el6-x86-64bit/manual.html
+meb-4.1.0-el6-x86-64bit/LICENSE.third_party
+meb-4.1.0-el6-x86-64bit/bin/mysqlbackup
+meb-4.1.0-el6-x86-64bit/README.txt
+meb-4.1.0-el6-x86-64bit/mvl.css
+meb-4.1.0-el6-x86-64bit/LICENSE.mysql
+
+###############################################################################################
+
+step 4: move  to directory mysqlbackup on both master and slave server
+
+mkdir -p /opt/mysql/meb-4.0.1
+mv /root/meb-4.1.0-el6-x86-64bit  /opt/mysql/meb-4.0.1/
+chmod 755 /opt/mysql/meb-4.0.1/*
+###############################################################################################
+step 5: create directory for backup-dir on both master and slave server
+
+on master: mkdir -p /Data/backup
+on slave : mkdir -p /Data/backup
+###############################################################################################
+step 6: create backup user and grant privilages to user on master server
+
+mysql -u root -pS@mple123
+CREATE USER 'mysqlbackup'@'%' IDENTIFIED BY 'S@mple123';
+GRANT RELOAD, SUPER, PROCESS ON *.* TO 'mysqlbackup'@'%';
+GRANT CREATE, INSERT, DROP, UPDATE ON mysql.backup_progress TO 'mysqlbackup'@'%';
+GRANT CREATE, INSERT, SELECT, DROP, UPDATE, ALTER ON mysql.backup_history  TO 'mysqlbackup'@'%';
+GRANT REPLICATION CLIENT ON *.* TO 'mysqlbackup'@'%';
+GRANT SELECT ON performance_schema.replication_group_members TO 'mysqlbackup'@'%';
+GRANT CREATE, INSERT, DROP ON mysql.backup_history_old TO 'mysqlbackup'@'%';
+GRANT CREATE, INSERT, DROP, ALTER ON mysql.backup_history_new TO 'mysqlbackup'@'%';
+GRANT LOCK TABLES, SELECT, CREATE, DROP, FILE ON *.* TO 'mysqlbackup'@'%';
+GRANT CREATE, INSERT, DROP, UPDATE ON mysql.backup_sbt_history TO 'mysqlbackup'@'%';
+FLUSH PRIVILEGES;
+
+
+###############################################################################################
+step 7:take backup and SCP to slave(on master):
+before take backup in master,you need to run this command to achive the last Position and file with:
+
+show master status \G;
+*************************** 1. row ***************************
+            File: master-bin.000001
+         Position: 267203
+
+     Binlog_Do_DB:
+ Binlog_Ignore_DB:
+Executed_Gtid_Set:
+1 row in set (0.01 sec)
+
+
+ERROR:
+No query specified
+
+
+/opt/mysql/meb-4.0.1/meb-4.1.0-el6-x86-64bit/bin/mysqlbackup --user=mysqlbackup --password=S@mple123 --port=3306 --protocol=tcp --backup-dir=/Data/backup --with-timestamp backup-and-apply-log --trace=2
+yum install openssh-clients
+
+scp -r /Data/backup/2022-01-22_14-19-06/ root@192.168.251.19:/Data/backup
+
+###############################################################################################
+step8-Shut down MySQL on the Slave
+
+systemctl stop mysqld.service
+
+############################################################################################
+step 9: Remove the old data on slave
+
+ rm -rf /var/lib/mysql
+
+############################################################################################
+step 10:
+
+on slave:
+first make your datadir(location of your database files)
+
+like:
+1.mkdir -p /Data/mysql
+cd /Data
+chown -R mysql:mysql mysql
+
+2.for binary log also, create the directory:
+cd /Data/mysql
+mkdir dirbinlog
+cd /Data/mysql 
+chown -R mysql:mysql dirbinlog
+
+add these lines in /etc/my.cnf
+
+[mysqld]
+datadir=/Data/mysql
+socket=/Data/mysql/mysql.sock
+
+symbolic-links=0
+
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+server-id = 2
+relay-log-index = relay-bin.index
+relay-log = relay-bin
+
+log-bin =/Data/mysql/dirbinlog/master-bin
+log-bin-index = /Data/mysql/dirbinlog/master-bin.index
+
+
+innodb_thread_concurrency = 0
+innodb_write_io_threads = 16
+innodb_read_io_threads = 16
+
+skip-name-resolve
+
+[client]
+port=3306
+socket=/Data/mysql/mysql.sock
+
+
+
+##########################################################################################
+
+step 11: restore the backup in slave
+
+/opt/mysql/meb-4.0.1/meb-4.1.0-el6-x86-64bit/bin/mysqlbackup --backup-dir=/Data/backup/2022-01-22_13-46-11/ copy-back
+
+
+##########################################################################################
+step 12: on slave:
+
+STOP SLAVE; 
+CHANGE MASTER TO MASTER_HOST='192.168.232.202', MASTER_USER='replication_user', MASTER_PASSWORD ='Men@113393', MASTER_LOG_FILE='mysql-bin.000001', MASTER_LOG_POS=79119;
+START SLAVE;
+
+
+CHANGE MASTER TO
+MASTER_HOST='192.168.251.18',
+MASTER_USER='rep',
+MASTER_PASSWORD='M#ysql456',
+MASTER_LOG_FILE='master-bin.000001',
+MASTER_LOG_POS=251396,
+MASTER_PORT = 3306;
+
+##########################################################################################
+step 13:Guarantee the ownership of the data directory is correct on slave
+
+check the status of datadir in slave:
+
+chown mysql.mysql -R /Data/mysql
+restorecon -R /Data/mysql
+
+if datadir is in /var/lib/mysql ,you have to change above to /var/lib/mysql.
+
+#############################################################################################
+
+step 14:start mysql in slave:
+
+systemctl start mysqld.service
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+pass policy:
+
+ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME UNLIMITED;
+ALTER PLUGGABLE DATABASE BENEF SAVE STATE;
+
+
+
+#############################################
+delete archive:
+delete archivelog until sequence 15110;
+
+###################################################################################
+CREATE SCHEMA :
+CREATE USER OFFLINE_PAYA_API  DIGITAL_AUTHENTICATION
+  IDENTIFIED BY l14jthvk4
+  DEFAULT TABLESPACE USERS
+  TEMPORARY TABLESPACE TEMP
+  PROFILE DEFAULT
+  ACCOUNT UNLOCK;
+
+
+  
+  
+ALTER USER OFFLINE_PAYA_API  DEFAULT ROLE ALL;
+ALTER USER OFFLINE_PAYA_API QUOTA UNLIMITED ON TBS_OFFLINE_PAYA_API;
+
+
+GRANT CONNECT,resource TO OFFLINE_PAYA_API;
+GRANT CREATE SESSION  to OFFLINE_PAYA_API;
+GRANT CREATE SEQUENCE TO OFFLINE_PAYA_API;
+GRANT CREATE TABLE TO OFFLINE_PAYA_API;
+GRANT CREATE TRIGGER TO OFFLINE_PAYA_API;
+GRANT CREATE ANY SEQUENCE TO OFFLINE_PAYA_API;
+GRANT CREATE ANY TABLE TO OFFLINE_PAYA_API;
+GRANT CREATE PROCEDURE TO OFFLINE_PAYA_API;
+GRANT CREATE SESSION TO OFFLINE_PAYA_API;
+GRANT CREATE SYNONYM TO OFFLINE_PAYA_API;
+GRANT CREATE TABLE TO OFFLINE_PAYA_API;
+GRANT CREATE VIEW TO OFFLINE_PAYA_API;
+GRANT DEBUG CONNECT SESSION TO OFFLINE_PAYA_API;
+GRANT EXECUTE ANY PROCEDURE TO OFFLINE_PAYA_API;
+GRANT CREATE ANY INDEX TO OFFLINE_PAYA_API;
+
+grant alter any table to OFFLINE_PAYA_API;
+grant alter  session to OFFLINE_PAYA_API;
+
+GRANT SELECT ANY TABLE TO OFFLINE_PAYA_API;
+GRANT SELECT ANY DICTIONARY TO OFFLINE_PAYA_API;
+
+
+
+
+GRANT EXECUTE ON SYS.DBMS_ALERT TO OFFLINE_PAYA_API;
+GRANT EXECUTE ON SYS.DBMS_LOCK TO OFFLINE_PAYA_API;
+
+
+
+
+
+
+
+
+####################check guard##############
+[oracle@shadab-std ~]$ cat mrp.sh
+sqlplus -S '/ as sysdba' << EOFI
+set pagesize 500;
+set linesize 120;
+--ALTER DATABASE RECOVER MANAGED STANDBY DATABASE USING CURRENT LOGFILE DISCONNECT FROM SESSION;
+--ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL;
+select PROCESS,STATUS,SEQUENCE#,block# from v\$managed_standby;
+exit;
+EOFI
+
+################rman script################
+[oracle@shadab-std ~]$ cat rman3.sh
+export ORACLE_SID=ccdg
+export DATE=$(date +%Y-%m-%d)
+export ORACLE_HOME=/u02/app/oracle/product/12.2.0/dbhome_1
+export PATH=$PATH:$ORACLE_HOME/bin
+rman target / msglog /var/log/rman_logs/backup_${DATE}.log   << EOFI
+crosscheck backup;
+crosscheck archivelog all;
+delete noprompt force archivelog all;
+delete noprompt force backup;
+sql 'alter system checkpoint';
+sql 'alter system switch logfile';
+backup current controlfile format '/u03/fra/CCDG/backup/controlfile/controlfile_before_%d_%T_%s.bck';
+backup as compressed backupset INCREMENTAL LEVEL 0 DATABASE format '/u03/fra/CCDG/backup/full/full_%d_%T_%s.bck' PLUS ARCHIVELOG format '/u03/fra/CCDG/backup/full/arch_%d_%T_%s.bck';
+backup current controlfile format '/u03/fra/CCDG/backup/controlfile/controlfile_after_%d_%T_%s.bck';
+crosscheck archivelog all;
+crosscheck backup;
+exit;
+EOFI
+echo $(date +%Y-%m-%d) > LogDeleteArchiveLog.txt
+
+
+################################Delete archive log###################[oracle@shadab-std ~]$ cat DeleteArchiveLog.sh
+export ORACLE_SID=ccdg
+export DATE=$(date +%Y-%m-%d-%T)
+export ORACLE_HOME=/u02/app/oracle/product/12.2.0/dbhome_1;
+export PATH=$PATH:$ORACLE_HOME/bin
+rman target / << EOFI
+crosscheck archivelog all;
+delete noprompt force archivelog all completed before 'sysdate-1';
+exit;
+EOFI
+echo $(date +%Y-%m-%d-%T) > LogDeleteArchiveLog.txt
+
+#######################check size of asm####################
+[oracle@shadab-std zabbix_script]$ cat zx_asmsize.sh
+#!/bin/bash
+cd /home/oracle
+. ./.bash_profile
+sqlplus -S '/ as sysdba' << EOFI
+set heading off;
+set feedback off;
+select * from (SELECT ROUND((1 - (free_mb / total_mb)) * 100, 2) pct_used from v\$asm_diskgroup order by pct_used desc) where rownum < 2;
+exit;
+EOFI
+####################check rman backup###############
+[oracle@shadab-std zabbix_script]$ cat zx_backup_check_main.sh
+#!/bin/ksh
+export ORACLE_SID=ccdg
+export DATE=$(date +%Y-%m-%d-%T)
+export ORACLE_HOME=/u02/app/oracle/product/12.2.0/dbhome_1
+export PATH=$PATH:$ORACLE_HOME/bin
+
+
+
+
+
+  /home/oracle/zabbix_script/zx_backup_check.sh  > /home/oracle/backup-check.txt
+backup_check=`cat  /home/oracle/backup-check.txt|awk '{print $4}'|head -4|tail -1`
+
+if [ $backup_check = 'COMPLETED' ] || [ $backup_check = 'COMPLETED  WITH WARNINGS' ]
+then
+
+    echo 1 > /tmp/backup_check.txt
+else
+    echo 0 > /tmp/backup_check.txt
+fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
