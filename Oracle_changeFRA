@@ -1,0 +1,5 @@
+change FRA:
+alter system set log_archive_duplex_dest='';
+alter system set log_archive_dest='';
+alter system set db_recovery_file_dest='+FRA';
+alter system set db_recovery_file_dest_size=10G;
