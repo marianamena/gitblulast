@@ -15,6 +15,11 @@ CREATE INDEX DPSTINTR.UIX_DPSTRNS_DLYTNOVR_TRNSDAT_SACNTID ON DPSTINTR.DW_FG_DPS
 LOCAL 
 PARALLEL 4;
 
+1./usr/lib/udev/scsi_id -g --device=/dev/sdb (get uuid)
+2. add uuid in :
+ vi    /etc/udev/rules.d/99-oracle-asmdevices.rules
+
+3.with grid :asmcma :add disk to disk group
 
 
 
