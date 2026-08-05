@@ -1,0 +1,10 @@
+parted /dev/sde
+
+
+mklabel gpt
+mkpart primary  1MB 537GB
+
+parted
+mklable
+mkfs 
+mount
