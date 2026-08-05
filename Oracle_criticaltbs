@@ -1,0 +1,19 @@
+#criticaltbs.sql
+set pagesize 100
+  select TS_NAME, TS_FREE_SIZE
+  from
+  (
+  select TS_NAME, SUM(DF_FREE_SIZE) TS_FREE_SIZE
+  from
+  (
+  select df.tablespace_name TS_NAME,
+  decode(AUTOEXTENSIBLE,'YES',((block_size * 4 * 1024 * 1024) - (blocks * block_size))/(1024 * 1024*1024),0) DF_FREE_SIZE
+  from dba_data_files df, dba_tablespaces ts
+ where df.tablespace_name = ts.tablespace_name
+ and ts.bigfile = 'NO'
+ and df.tablespace_name not in ('SYSTEM','SYSAUX')
+ and substr(df.tablespace_name, 1, 7) <> 'UNDOTBS'
+ )
+ group by TS_NAME
+              )
+ order by TS_FREE_SIZE desc;[
