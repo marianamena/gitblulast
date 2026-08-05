@@ -1,0 +1,135 @@
+1.check the status of autovaccum 
+2.find age of xid per database
+3.find xid per tables
+4.threshold set start autovaccum
+
+
+check 1:
+SELECT pid, datname, relid::regclass AS table,
+       query_start, now() - query_start AS duration,
+       state, wait_event_type, wait_event, query
+FROM pg_stat_activity
+WHERE query ILIKE '%autovacuum%' OR backend_type = 'autovacuum worker'
+ORDER BY query_start;
+
+2. check the last time of autovaccum:
+SELECT
+  schemaname,
+  relname,
+  last_autovacuum,
+  last_vacuum,
+  n_tup_ins, n_tup_upd, n_tup_del,
+  vacuum_count, autovacuum_count
+FROM pg_stat_all_tables
+ORDER BY last_autovacuum DESC NULLS LAST;
+
+3.payesh jadval baraye hadeaksare mojaz:
+WITH params AS (
+  SELECT
+    current_setting('autovacuum_freeze_max_age')::bigint AS freeze_max_age,
+    current_setting('autovacuum_multixact_freeze_max_age')::bigint AS mfreeze_max_age
+)
+SELECT
+  n.nspname AS schema,
+  c.relname AS table,
+  age(c.relfrozenxid) AS xid_age,
+  round(100.0 * age(c.relfrozenxid) / p.freeze_max_age, 2) AS xid_pct_of_max,
+  age(c.relminmxid) AS mxid_age,
+  round(100.0 * age(c.relminmxid) / p.mfreeze_max_age, 2) AS mxid_pct_of_max,
+  pg_size_pretty(pg_relation_size(c.oid)) AS table_size,
+  last_autovacuum
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+CROSS JOIN params p
+LEFT JOIN pg_stat_all_tables s ON s.relid = c.oid
+WHERE c.relkind IN ('r','m')
+ORDER BY xid_pct_of_max DESC
+LIMIT 100;
+
+
+
+zamani xid_pct_of_max b 80 90 darsad berese
+
+
+parameter 
+
+SHOW autovacuum;
+SHOW autovacuum_vacuum_threshold; yani hadeaghal check mikone k agar 50 ta row insert update shod bere check kone vaccum k Niyaz hast ya na.
+SHOW autovacuum_analyze_threshold;
+SHOW autovacuum_vacuum_scale_factor;
+SHOW autovacuum_analyze_scale_factor;
+SHOW autovacuum_vacuum_cost_delay;
+SHOW autovacuum_vacuum_cost_limit;
+SHOW autovacuum_naptime;
+SHOW autovacuum_freeze_max_age;
+SHOW autovacuum_multixact_freeze_max_age;
+SHOW vacuum_freeze_table_age;
+SHOW vacuum_freeze_min_age;
+SHOW vacuum_multixact_freeze_table_age;
+SHOW vacuum_multixact_freeze_min_age;
+
+
+vacuum_freeze_table_age (integer)
+VACUUM performs an aggressive scan if the table's pg_class.relfrozenxid field has reached the age specified by this setting. An aggressive scan differs from a regular VACUUM in that it visits every page that might contain unfrozen XIDs or MXIDs, not just those that might contain dead tuples. The default is 150 million transactions. Although users can set this value anywhere from zero to two billions, VACUUM will silently limit the effective value to 95% of autovacuum_freeze_max_age, so that a periodical manual VACUUM has a chance to run before an anti-wraparound autovacuum is launched for the table. For more information see Section 24.1.5.
+
+
+
+
+
+1.the following query reports the database system level usage of transaction ID space:
+
+WITH max_age AS (
+SELECT 2000000000 as max_old_txid
+, setting AS autovacuum_freeze_max_age
+FROM pg_catalog.pg_settings
+WHERE name = 'autovacuum_freeze_max_age' )
+, per_database_stats AS (
+SELECT datname
+, m.max_old_txid::int
+, m.autovacuum_freeze_max_age::int
+, age(d.datfrozenxid) AS oldest_current_txid
+FROM pg_catalog.pg_database d
+JOIN max_age m ON (true)
+WHERE d.datallowconn )
+SELECT max(oldest_current_txid) AS oldest_current_txid
+, max(ROUND(100*(oldest_current_txid/max_old_txid::float))) AS
+consumed_txid_pct
+, max(ROUND(100*(oldest_current_txid/autovacuum_freeze_max_age::float)))
+AS consumed_autovac_max_age
+FROM per_database_stats;
+
+1.agar  consumed_txid_pct bala bashe ,bayad bebinim kodom dbishe:
+SELECT datname, age(datfrozenxid) AS frozen_xid_age
+, ROUND(100*(age(datfrozenxid)/2000000000.0::float))
+consumed_txid_pct
+, current_setting('autovacuum_freeze_max_age')::int
+- age(datfrozenxid) AS remaining_aggressive_vacuum
+FROM pg_database;
+
+
+3.bayad berim soraghe jadvali k to on db bala bode:
+
+SELECT c.oid::regclass
+, age(c.relfrozenxid)
+, pg_size_pretty(pg_total_relation_size(c.oid))
+FROM pg_class c
+JOIN pg_namespace n on c.relnamespace = n.oid
+WHERE relkind IN ('r', 't', 'm')
+AND n.nspname NOT IN ('pg_toast')
+ORDER BY 2 DESC LIMIT 50;
+
+
+the following query retrieves the oldest value for each of the VACUUM operation blockers:
+
+SELECT
+(SELECT max(age(backend_xmin)) FROM pg_stat_activity) as
+oldest_running_xact,
+(SELECT max(age(transaction)) FROM pg_prepared_xacts) as
+oldest_prepared_xact,
+(SELECT max(age(xmin)) FROM pg_replication_slots) as
+oldest_replication_slot
+(SELECT max(age(backend_xmin)) FROM pg_stat_replication) as
+oldest_replica_xact
+;
+
+
