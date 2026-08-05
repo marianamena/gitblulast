@@ -1,0 +1,3 @@
+ALTER TABLE core_etl.tax_user_tax_accrued_agg
+ADD CONSTRAINT uq_tax_user_tax_accrued_agg_cif_loan_sched
+UNIQUE (cif, loan_application_reference, schedule_date);
