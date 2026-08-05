@@ -1,0 +1,34 @@
+
+
+This information is also available at: 
+
+	/u01/app/oracle/middleware/oms_home/install/setupinfo.txt
+
+See the following for information pertaining to your Enterprise Manager installation:
+
+
+Use the following URL to access:
+
+	1. Enterprise Manager Cloud Control URL: https://clouddb:7803/em
+	2. Admin Server URL: https://clouddb:7102/console
+
+The following details need to be provided while installing an additional OMS:
+
+	1. Admin Server Host Name: clouddb
+	2. Admin Server Port: 7102
+
+You can find the details on ports used by this deployment at : /u01/app/oracle/middleware/oms_home/install/portlist.ini
+
+
+ NOTE:
+ An encryption key has been generated to encrypt sensitive data in the Management Repository. If this key is lost, all encrypted data in the Repository becomes unusable. 
+
+ A backup of the OMS configuration is available in /u01/app/oracle/middleware/gc_inst/em/EMGC_OMS1/sysman/backup on host clouddb. See Cloud Control Administrators Guide for details on how to back up and recover an OMS.
+
+ NOTE: This backup is valid only for the initial OMS configuration. For example, it will not reflect plug-ins installed later, topology changes like the addition of a load balancer, or changes to other properties made using emctl or emcli. Backups should be created on a regular basis to ensure they capture the current OMS configuration. Use the following command to backup the OMS configuration:
+/u01/app/oracle/middleware/oms_home/bin/emctl exportconfig oms -dir <backup dir> 
+
+
+/u01/app/oracle/middleware/gc_inst/user_projects/domains/GCDomain weblogic
+
+LISTENER_c-dg-pr-node1.sdb247.com
