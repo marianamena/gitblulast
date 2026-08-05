@@ -1,0 +1,25 @@
+in 90.10: grid
+
+alter diskgroup data add disk'/dev/mapper/mpaths_data_unity_s_25may10p1';
+
+in 53.37:grid
+alter diskgroup data add disk'/dev/asmdisks/mpatha_data_unity_o_25may10'
+
+in 90.10:
+
+create index:
+
+CREATE INDEX DPSTINTR.UIX_DPSTRNS_DLYTNOVR_TRNSDAT_SACNTID ON DPSTINTR.DW_FG_DPSTRNS_DLYTNOVR
+(GREG_TRNS_DATE, SAVING_ACNT_ID)
+  TABLESPACE DPSTINTR_TBS
+LOCAL 
+PARALLEL 4;
+
+
+
+
+
+
+
+
+
