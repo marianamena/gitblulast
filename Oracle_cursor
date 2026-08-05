@@ -1,0 +1,138 @@
+create job with curesor
+
+
+DECLARE
+  CURSOR c IS
+    SELECT t.owner, t.table_name
+    FROM   dba_tab_statistics t
+           JOIN dba_segments s
+             ON t.owner = s.owner
+            AND t.table_name = s.segment_name
+    WHERE ( t.stale_stats = 'YES'  or  t.stale_stats is null) and t.TABLE_NAME NOT LIKE '$%' AND t.OWNER NOT  LIKE '%SYS%' and  t.owner not in
+ ('XSTRMADMIN','DBSNMP','DBSFWUSER','GSMADMIN_INTERNAL','XDB','OGG','ORDDATA','SCHEDULER','GG','OGGUSER','CBS_JOB_SERVICE')
+     AND    t.partition_name IS NULL 
+    AND    s.segment_type = 'TABLE'
+    AND    s.bytes < 20 * 1024 * 1024 * 1024; 
+BEGIN
+  FOR r IN c LOOP
+    DBMS_STATS.GATHER_TABLE_STATS(
+      ownname          => r.owner,
+      tabname          => r.table_name,
+      degree           => 10,
+      cascade          => TRUE
+    );
+  END LOOP;
+END;
+/
+
+
+
+
+BEGIN
+  DBMS_SCHEDULER.CREATE_JOB (
+    job_name        => 'JOB_GATHER_STALE_NONPART_TABLE_UNDER20G',
+    job_type        => 'PLSQL_BLOCK',
+    job_action      => q'[
+      DECLARE
+  CURSOR c IS
+    SELECT t.owner, t.table_name
+    FROM   dba_tab_statistics t
+           JOIN dba_segments s
+             ON t.owner = s.owner
+            AND t.table_name = s.segment_name
+    WHERE ( t.stale_stats = 'YES'  or  t.stale_stats is null) and t.TABLE_NAME NOT LIKE '%$%'  and  t.owner not in
+('XSTRMADMIN','DBSNMP','DBSFWUSER','GSMADMIN_INTERNAL','XDB','OGG','ORDDATA','SCHEDULER','GG','OGGUSER','CBS_JOB_SERVICE','SYS','SYSTEM','APPQOSSYS','CTXSYS','DVSYS','OJVMSYS','AUDSYS',
+ 'MDSYS','LBACSYS','OLAPSYS','ORDSYS','WMSYS')
+     AND    t.partition_name IS NULL 
+    AND    s.segment_type = 'TABLE'
+    AND    s.bytes < 20 * 1024 * 1024 * 1024; 
+BEGIN
+  FOR r IN c LOOP
+    DBMS_STATS.GATHER_TABLE_STATS(
+      ownname          => r.owner,
+      tabname          => r.table_name,
+      degree           => 10,
+      cascade          => TRUE
+    );
+  END LOOP;
+END;
+    ]',
+    start_date      => SYSTIMESTAMP,
+    repeat_interval => 'FREQ=DAILY; BYHOUR=2; BYMINUTE=0; BYSECOND=0', -- هر روز ساعت ۲ صبح
+    enabled         => TRUE
+  );
+END;
+/
+
+
+
+
+BEGIN
+  SYS.DBMS_SCHEDULER.CREATE_JOB
+    (
+       job_name        => 'SYS.JOB_CHECK_GATHER_STALE_NONPART_UNDER20G'
+      ,start_date      => TO_TIMESTAMP_TZ('2025/09/29 14:11:48.914022 +03:30','yyyy/mm/dd hh24:mi:ss.ff tzh:tzm')
+      ,repeat_interval => 'FREQ=DAILY; BYHOUR=7; BYMINUTE=0; BYSECOND=0'
+      ,end_date        => NULL
+      ,job_class       => 'DEFAULT_JOB_CLASS'
+      ,job_type        => 'PLSQL_BLOCK'
+      ,job_action      => '
+     begin 
+if to_number(to_char(systimestamp,'HH24')) >= 7
+then
+dbms_scheduler.stop_job('OB_GATHER_STALE_NONPART_TABLE_UNDER20G',force => true);
+end if;
+end;
+/
+
+    '
+      ,comments        => NULL
+    );
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.OB_GATHER_STALE_NONPART_TABLE_UNDER20G'
+     ,attribute => 'RESTARTABLE'
+     ,value     => FALSE);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.OB_GATHER_STALE_NONPART_TABLE_UNDER20G'
+     ,attribute => 'LOGGING_LEVEL'
+     ,value     => SYS.DBMS_SCHEDULER.LOGGING_OFF);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE_NULL
+    ( name      => 'SYS.OB_GATHER_STALE_NONPART_TABLE_UNDER20G'
+     ,attribute => 'MAX_FAILURES');
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE_NULL
+    ( name      => 'SYS.OB_GATHER_STALE_NONPART_TABLE_UNDER20G'
+     ,attribute => 'MAX_RUNS');
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.OB_GATHER_STALE_NONPART_TABLE_UNDER20G'
+     ,attribute => 'STOP_ON_WINDOW_CLOSE'
+     ,value     => FALSE);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.OB_GATHER_STALE_NONPART_TABLE_UNDER20G'
+     ,attribute => 'JOB_PRIORITY'
+     ,value     => 3);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE_NULL
+    ( name      => 'SYS.OB_GATHER_STALE_NONPART_TABLE_UNDER20G'
+     ,attribute => 'SCHEDULE_LIMIT');
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.OB_GATHER_STALE_NONPART_TABLE_UNDER20G'
+     ,attribute => 'AUTO_DROP'
+     ,value     => TRUE);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.OB_GATHER_STALE_NONPART_TABLE_UNDER20G'
+     ,attribute => 'RESTART_ON_RECOVERY'
+     ,value     => FALSE);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.OB_GATHER_STALE_NONPART_TABLE_UNDER20G'
+     ,attribute => 'RESTART_ON_FAILURE'
+     ,value     => FALSE);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.OB_GATHER_STALE_NONPART_TABLE_UNDER20G'
+     ,attribute => 'STORE_OUTPUT'
+     ,value     => TRUE);
+
+  SYS.DBMS_SCHEDULER.ENABLE
+    (name                  => 'SYS.OB_GATHER_STALE_NONPART_TABLE_UNDER20G');
+END;
+/
+
+
