@@ -1,0 +1,30 @@
+SELECT trunc (first_time) "Date",
+ to_char (trunc (first_time),'Dy') "Day",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 0, 1)) "00",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 1, 1)) "01",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 2, 1)) "02",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 3, 1)) "03",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 4, 1)) "04",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 5, 1)) "05",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 6, 1)) "06",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 7, 1)) "07",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 8, 1)) "08",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 9, 1)) "09",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 10, 1)) "10",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 11, 1)) "11",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 12, 1)) "12",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 13, 1)) "13",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 14, 1)) "14",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 15, 1)) "15",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 16, 1)) "16",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 17, 1)) "17",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 18, 1)) "18",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 19, 1)) "19",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 20, 1)) "20",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 21, 1)) "21",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 22, 1)) "22",
+ sum (decode (to_number (to_char (FIRST_TIME, 'HH24')), 23, 1)) "23"
+ from v$log_history
+ where trunc (first_time) >= (trunc(sysdate)) -- last X days. 0 = today only. 1 = today and yesterday
+ group by trunc (first_time)
+order by trunc (first_time) DESC
