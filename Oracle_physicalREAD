@@ -1,0 +1,16 @@
+SELECT
+    sq1.parsing_schema_name                             username,
+    sq1.module,
+    sq1.action,
+    sq1.sql_id,
+    sq1.optimizer_cost,
+    round(sq1.physical_read_bytes / 1024 / 1024 / 1024) physical_read_gb,
+    sq1.sorts,
+    sq1.first_load_time                                 start_time,
+    sq2.sql_text,
+    sysdate                                             insert_time
+FROM
+         v$sql sq1
+    JOIN dba_hist_sqltext sq2 ON sq1.sql_id = sq2.sql_id
+                                 AND sq1.optimizer_cost IS NOT NULL
+                                 AND sq1.physical_read_bytes > 107374182400 order by 6 desc
