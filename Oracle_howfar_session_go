@@ -1,0 +1,8 @@
+SELECT * FROM (select
+username,opname,sid,serial#,round(sofar/totalwork*100,2) "% Complete",a.sql_text
+from gv$session_longops s ,v$sqltext a
+where
+s.sql_hash_value= a.hash_value and
+elapsed_seconds > 1 and OPNAME NOT IN  ('aggregate output','archived log backup','SYS_EXPORT_SCHEMA_60')
+AND OPNAME NOT LIKE  '%RMAN%' AND OPNAME NOT LIKE  '%Gather%' AND OPNAME NOT LIKE '%Advisor%')
+WHERE "% Complete" != 100
