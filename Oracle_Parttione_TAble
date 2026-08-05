@@ -1,0 +1,16 @@
+alter table spu.fact  MODIFY
+PARTITION BY RANGE (CREATED_DATE)
+INTERVAL (NUMTODSINTERVAL(1,'DAY'))
+(PARTITION PART01 VALUES LESS THAN (TO_DATE(' 2021-03-21 00:00:00', 'YYYY-MM-DD HH24:mi:SS', 'NLS_CALENDAR=GREGORIAN'))
+)
+online
+
+
+CREATE UNIQUE INDEX CORE_ETL.FACT_TRANSACTIONS__2_PK ON CORE_ETL.FACT_TRANSACTIONS
+(ID) local TABLESPACE ETL_TBS
+
+
+http://www.acehints.com/2011/05/how-to-partition-non-partitioned-table.html
+https://www.dbgenre.com/post/convert-non-partitioned-table-into-partitioned
+https://docs.oracle.com/en/database/oracle/oracle-database/12.2/vldbg/evolve-nopartition-table.html#GUID-5C0F8D12-DDDF-42AB-B644-1880156832BC
+https://uhesse.com/2010/02/15/partitioning-a-table-online-with-dbms_redefinition/
