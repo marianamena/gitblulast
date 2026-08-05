@@ -1,1 +1,164 @@
 alter tablespace ORCHIDEH_TBS add datafile '+DATA' SIZE 25M AUTOEXTEND ON NEXT 100M MAXSIZE UNLIMITED;
+
+
+
+job:
+DECLARE
+          ts_name varchar (40);
+           c_ts_name ts_name%type;
+           CURSOR c_tbs_table is
+                select TS_NAME
+                  from
+                              (
+                              select TS_NAME, SUM(DF_FREE_SIZE) TS_FREE_SIZE
+                              from
+                                          (
+                                          select df.tablespace_name TS_NAME,
+                                                      decode(AUTOEXTENSIBLE,'YES',((block_size * 4 * 1024 * 1024) - (blocks * block_size))/(1024 * 1024 * 1024),0) DF_FREE_SIZE
+                                          from dba_data_files df, dba_tablespaces ts
+                                          where df.tablespace_name = ts.tablespace_name
+                                                      and ts.bigfile = 'NO'
+                                                      and df.tablespace_name not in ('SYSTEM','SYSAUX','SSD')
+                                                      and substr(df.tablespace_name, 1, 7) <> 'UNDOTBS'
+                                          )
+                              group by TS_NAME
+                  )  where TS_FREE_SIZE < 30;
+        BEGIN
+           OPEN c_tbs_table;
+           LOOP
+              FETCH c_tbs_table into c_ts_name;
+              EXIT WHEN c_tbs_table%notfound;
+           execute immediate 'alter tablespace '||c_ts_name||' add datafile';
+           END LOOP;
+           CLOSE c_tbs_table;
+        END;
+
+
+________________________________________________________
+
+jobesh
+
+
+BEGIN
+  SYS.DBMS_SCHEDULER.DROP_JOB
+    (job_name  => 'SYS.AUTO_ADD_DATAFILE_JOB');
+END;
+/
+
+BEGIN
+  SYS.DBMS_SCHEDULER.CREATE_JOB
+    (
+       job_name        => 'SYS.AUTO_ADD_DATAFILE_JOB'
+      ,start_date      => TO_TIMESTAMP_TZ('2023/05/14 11:30:00.000000 +04:30','yyyy/mm/dd hh24:mi:ss.ff tzh:tzm')
+      ,repeat_interval => 'Freq=Minutely;Interval=5'
+      ,end_date        => NULL
+      ,job_class       => 'DEFAULT_JOB_CLASS'
+      ,job_type        => 'PLSQL_BLOCK'
+      ,job_action      => 'DECLARE
+          ts_name varchar (40);
+           c_ts_name ts_name%type;
+           CURSOR c_tbs_table is
+                select TS_NAME
+                  from
+                              (
+                              select TS_NAME, SUM(DF_FREE_SIZE) TS_FREE_SIZE
+                              from
+                                          (
+                                          select df.tablespace_name TS_NAME,
+                                                      decode(AUTOEXTENSIBLE,''YES'',((block_size * 4 * 1024 * 1024) - (blocks * block_size))/(1024 * 1024 * 1024),0) DF_FREE_SIZE
+                                          from dba_data_files df, dba_tablespaces ts
+                                          where df.tablespace_name = ts.tablespace_name
+                                                      and ts.bigfile = ''NO''
+                                                      and df.tablespace_name not in (''SYSTEM'',''SYSAUX'',''SSD'')
+                                                      and substr(df.tablespace_name, 1, 7) <> ''UNDOTBS''
+                                          )
+                              group by TS_NAME
+                  )  where TS_FREE_SIZE < 30;
+        BEGIN
+           OPEN c_tbs_table;
+           LOOP
+              FETCH c_tbs_table into c_ts_name;
+              EXIT WHEN c_tbs_table%notfound;
+           execute immediate ''alter tablespace ''||c_ts_name||'' add datafile'';
+           END LOOP;
+           CLOSE c_tbs_table;
+        END;'
+      ,comments        => 'My new job'
+    );
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.AUTO_ADD_DATAFILE_JOB'
+     ,attribute => 'RESTARTABLE'
+     ,value     => FALSE);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.AUTO_ADD_DATAFILE_JOB'
+     ,attribute => 'LOGGING_LEVEL'
+     ,value     => SYS.DBMS_SCHEDULER.LOGGING_OFF);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE_NULL
+    ( name      => 'SYS.AUTO_ADD_DATAFILE_JOB'
+     ,attribute => 'MAX_FAILURES');
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE_NULL
+    ( name      => 'SYS.AUTO_ADD_DATAFILE_JOB'
+     ,attribute => 'MAX_RUNS');
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.AUTO_ADD_DATAFILE_JOB'
+     ,attribute => 'STOP_ON_WINDOW_CLOSE'
+     ,value     => FALSE);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.AUTO_ADD_DATAFILE_JOB'
+     ,attribute => 'JOB_PRIORITY'
+     ,value     => 3);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE_NULL
+    ( name      => 'SYS.AUTO_ADD_DATAFILE_JOB'
+     ,attribute => 'SCHEDULE_LIMIT');
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.AUTO_ADD_DATAFILE_JOB'
+     ,attribute => 'AUTO_DROP'
+     ,value     => TRUE);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.AUTO_ADD_DATAFILE_JOB'
+     ,attribute => 'RESTART_ON_RECOVERY'
+     ,value     => FALSE);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.AUTO_ADD_DATAFILE_JOB'
+     ,attribute => 'RESTART_ON_FAILURE'
+     ,value     => FALSE);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.AUTO_ADD_DATAFILE_JOB'
+     ,attribute => 'STORE_OUTPUT'
+     ,value     => TRUE);
+
+  SYS.DBMS_SCHEDULER.ENABLE
+    (name                  => 'SYS.AUTO_ADD_DATAFILE_JOB');
+END;
+/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
