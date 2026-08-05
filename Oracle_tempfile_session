@@ -1,0 +1,42 @@
+SELECT /*+ ordered */
+      d.tablespace_name tablespace,
+       d.file_name filename,
+       d.bytes filesize,
+       d.autoextensible autoextensible,
+       d.increment_by * e.VALUE increment_by,
+       d.maxbytes maxbytes
+  FROM sys.dba_data_files d,
+       v$datafile v,
+       (SELECT VALUE
+          FROM v$parameter
+         WHERE name = 'db_block_size') e
+ WHERE (d.file_name = v.name)
+UNION
+SELECT d.tablespace_name tablespace,
+       d.file_name filename,
+       d.bytes filesize,
+       d.autoextensible autoextensible,
+       d.increment_by * e.VALUE increment_by,
+       d.maxbytes maxbytes
+  FROM sys.dba_temp_files d,
+       (SELECT VALUE
+          FROM v$parameter
+         WHERE name = 'db_block_size') e
+UNION
+SELECT '[ ONLINE REDO LOG ]',
+       a.MEMBER,
+       b.bytes,
+       NULL,
+       TO_NUMBER (NULL),
+       TO_NUMBER (NULL)
+  FROM v$logfile a, v$log b
+ WHERE a.group# = b.group#
+UNION
+SELECT '[ CONTROL FILE ]',
+       a.name,
+       TO_NUMBER (NULL),
+       NULL,
+       TO_NUMBER (NULL),
+       TO_NUMBER (NULL)
+  FROM v$controlfile a
+ORDER BY 1, 2;
