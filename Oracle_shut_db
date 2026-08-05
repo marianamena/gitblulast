@@ -1,0 +1,5 @@
+oracle: shutdown immediate   with alert 
+
+grid:crsctl stop resource -all
+
+root: poweroff
