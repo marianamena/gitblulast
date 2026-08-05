@@ -1,0 +1,19 @@
+select b.sid, b.serial#, a.spid, b.client_info
+from v$process a, v$session b
+where a.addr=b.paddr and client_info like 'rman%';
+
+
+select 'Alter system kill session '''||b.sid||','||b.serial#||''' immediate;'
+from v$process a, v$session b
+where a.addr=b.paddr and client_info like 'rman%';
+
+
+ALTER PROFILE  LIMIT PASSWORD_LIFE_TIME UNLIMITED
+
+
+userparameter=oracle.check_rman_infra,cat /tmp/check_rman_infra.txt
+
+SELECT(SELECT sequence#FROM v$archived_logWHERE sequence# =(SELECT MAX(sequence#) FROM v$archived_log );
+)
+-
+(select sequence# FROM v$archived_log WHERE sequence# = (SELECT MAX(sequence#) FROM v$archived_log WHERE applied='YES')) AS diff FROM dual;
