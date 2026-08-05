@@ -1,0 +1,30 @@
+#grants in postgres
+DO $$
+DECLARE
+    r RECORD;
+    target_user text := 'm_tayefeh';
+BEGIN
+    FOR r IN
+        SELECT schemaname, tablename
+        FROM pg_tables
+        WHERE schemaname IN ('interest')
+    LOOP
+        EXECUTE format(
+            'GRANT SELECT ON TABLE %I.%I TO %I',
+            r.schemaname,
+            r.tablename,
+            target_user
+        );
+    END LOOP;
+END $$;
+
+
+check grants:
+
+SELECT
+    table_schema,
+    table_name,
+    privilege_type
+FROM information_schema.role_table_grants
+WHERE grantee = 'm_tayefeh'
+ORDER BY table_schema, table_name;
