@@ -1,0 +1,6 @@
+
+
+
+SELECT SESSION_ID, program, module , event,sql_id ,TIME_WAITED,SESSION_STATE 
+FROM  dba_hist_active_sess_history h
+where h.SQL_ID='4xuy9qrjbu5xs'
