@@ -1,0 +1,5 @@
+
+Select decode( object_type, 'PACKAGE BODY', 'ALTER PACKAGE ' || OBJECT_NAME || ' COMPILE BODY;','ALTER ' || OBJECT_TYPE || ' ' || OBJECT_NAME || ' compile;' )
+from user_objects
+where status = 'INVALID'
+order by object_type
