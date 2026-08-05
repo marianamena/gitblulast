@@ -15,3 +15,103 @@ pass: lin0tpp98ss
 
 grant USAGE on SCHEMA happy2help to "m.raoofnia" ;
 
+
+
+create database boc; alan owneresh postgres hast ,bayad avaz beshe
+\c boc
+CREATE USER data_eng with password 'S9KcXaGJwjevLq';
+CREATE USER airflow with password 'NFUtQvHbenhJ5cw'; 
+CREATE USER sre with password 'HJTD2kv8xnjM';
+
+check connection in easy connection for every user:
+psql -h 172.16.72.66 -p 5432 -U data_eng  -d boc
+psql -h 172.16.72.66 -p 5432 -U airflow  -d boc
+psql -h 172.16.72.66 -p 5432 -U sre  -d boc
+
+grant connect,CREATE on database boc to airflow;
+grant connect on database boc to data_eng;
+grant connect on database boc to sre;
+
+ALTER DATABASE boc OWNER TO airflow;
+
+grant usage on schema temp to airflow;
+
+Ip: 172.16.72.66
+Port:5432
+Databasename: boc
+
+data_eng 'S9KcXaGJwjevLq';
+airflow 'NFUtQvHbenhJ5cw'; 
+sre 'HJTD2kv8xnjM';
+
+
+# create database,user,grants
+
+## create database
+```sql
+create database boc;
+```
+## change owner of database :
+```sql
+ALTER DATABASE boc OWNER TO airflow;
+```
+
+
+## create user:
+```sql
+ALTER DATABASE boc OWNER TO airflow;
+```
+
+## create user:
+```sql
+CREATE USER data_eng with password 'password';
+CREATE USER airflow with password 'password'; 
+CREATE USER sre with password 'password';
+```
+## check connection:
+```sql
+psql -h 172.16.72.66 -p 5432 -U data_eng  -d boc
+psql -h 172.16.72.66 -p 5432 -U airflow  -d boc
+psql -h 172.16.72.66 -p 5432 -U sre  -d boc
+
+```
+
+
+
+#create database :
+
+```sql
+create database boc;
+```
+
+#change owner of database :
+
+```sql
+
+ALTER DATABASE boc OWNER TO airflow;
+
+```
+
+#create user :
+
+CREATE USER data_eng with password 'password';
+CREATE USER airflow with password 'password'; 
+CREATE USER sre with password 'password';
+
+#check connection:
+
+```sql
+psql -h 172.16.72.66 -p 5432 -U data_eng  -d boc
+psql -h 172.16.72.66 -p 5432 -U airflow  -d boc
+psql -h 172.16.72.66 -p 5432 -U sre  -d boc
+
+```
+
+#Grants:
+
+```sql
+grant connect,CREATE on database boc to airflow;
+grant connect on database boc to data_eng;
+grant connect on database boc to sre;
+
+```
