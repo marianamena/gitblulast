@@ -1,0 +1,36 @@
+impreva_user
+GRANT select on pg_attribute  TO "Imperva_user"; 
+GRANT select on pg_database  TO "Imperva_user"; 
+GRANT select on pg_tables  TO "Imperva_user"; 
+GRANT select on pg_views TO "Imperva_user"; 
+GRANT SELECT ON information_schema.schemata TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_database TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_tables TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_views TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_namespace TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_proc TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_roles TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_sequences TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_authid TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_class TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_auth_members TO "Imperva_user";
+
+
+
+create role "Imperva_user" with login password 'wNlW686G' ;
+grant select on pg_authid to "Imperva_user";
+grant select on pg_shadow to "Imperva_user";
+GRANT CONNECT ON DATABASE linotp_db to "Imperva_user";
+
+
+GRANT SELECT ON information_schema.schemata TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_database TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_tables TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_views TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_namespace TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_proc TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_roles TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_sequences TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_authid TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_class TO "Imperva_user"; 
+GRANT SELECT ON pg_catalog.pg_auth_members TO "Imperva_user";
