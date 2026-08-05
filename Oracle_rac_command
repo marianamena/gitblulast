@@ -1,0 +1,17 @@
+./crsctl stat res -t
+./crsctl start res dwdb1-scan
+./crsctl check crs
+./crsctl query css votedisk
+./ocrcheck
+to check olr: ./ocrcheck -local #### you should be root to run this command.
+./srvcl status nodeapp
+./srvctl status -h
+srvctl status database -d aramisbi
+ srvctl status  instance -d aramisbi  -n DWDB
+./crsctl stat res ora.scan1.vip
+crsctl start crs  : you should be root
+srvctl status listener
+srvctl status scan_listener
+srvctl -help
+srvctl stop listener -n rac1
+srvctl stop instance -d orcl -n rac2
