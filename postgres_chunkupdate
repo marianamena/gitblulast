@@ -1,0 +1,18 @@
+chunk update with id in postgres
+
+update staging.sepcms_cardfunnel
+set op_fingerprint =
+        sha256(
+                convert_to(
+                        concat(
+                                mongo_id,
+                                coalesce(card_id, '-1'),
+                                op_type,
+                                op_date::text
+                        ),
+                        'UTF8'
+                )
+        )
+where id >= 300000000 and id < 400000000;
+
+ALTER TABLE staging.sepcms_cardfunnel  ADD COLUMN op_fingerprint BYTEA;
