@@ -1,0 +1,63 @@
+
+##############################################
+
+
+--========check and install pgaudit  ( sysops bayad repository ro mount kone)
+
+apt search pgaudit
+apt-get install postgresql-XX-pgaudit  # replace XX with your PostgreSQL version
+
+
+
+======Add extention to config file
+
+
+1. Edit postgresql.conf: Locate the postgresql.conf file, usually found in the PostgreSQL data directory. 
+
+cat /var/lib/pgsql/12/data/postgresql.conf | grep shared_preload_libraries
+
+---As the root user, add or modify the following configuration settings: 
+
+shared_preload_libraries = 'pgaudit'
+
+
+
+2. Restart PostgreSQL: Restart the PostgreSQL service to apply the changes
+
+systemctl restart PostgreSQL 
+
+3. Create the extension in the database
+
+a:  Connect to your PostgreSQL instance:
+
+psql
+
+b: Create the extension in the desired database:
+
+CREATE EXTENSION pgaudit;
+
+4. Verify installation
+
+SELECT * FROM pg_extension WHERE extname = 'pgaudit';
+
+############################################################
+
+------more pgaudit configuration :
+
+alter system set log_destination = 'csvlog';
+alter system set logging_collector = 'on';
+alter system set log_directory='/pg_log/log';  ----> create folder on every server
+alter system set log_filename='postgresql-%Y-%m-%d_%H%M%S.log';
+alter system set log_connections = 'on';
+alter system set log_rotation_size = '0MB'; 
+alter system set log_rotation_age='7d';
+ALTER SYSTEM SET pgaudit.log TO 'ddl,  role';
+select pg_reload_conf();
+
+
+--restart postgresql
+
+
+
+
+
