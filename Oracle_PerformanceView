@@ -1,0 +1,8 @@
+v$system_event: total wait for an event since last startup
+v$session_event: waits by session
+v$active_session_history: snapshots of active database sessions taken once a second.
+v$sql:statistics on shared sql area,it contains one row for each sql statement
+v$sqlarea: statistics on shared sql areas,group by sql text
+v$sqlstats: basic performance statistincs for sql ,one row per sql statments
+v$sysstat: retrives system-wide statistics can be used to categorize the system statistics.
+v$sessstat: retrives user session statistics
