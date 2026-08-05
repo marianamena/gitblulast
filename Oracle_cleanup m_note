@@ -1,0 +1,68 @@
+#cleanup m_note
+#!/bin/bash
+export ORACLE_SID=cbstest
+export ORACLE_HOME=/u01/app/oracle/product/19.3/dbhome_1
+export LD_LIBRARY_PATH=/u01/app/oracle/product/19.3/db_1/lib:/u01/app/oracle/product/19.3/db_1/lib:/lib:/usr/lib
+export PATH=/u01/app/oracle/product/19.3/db_1/bin:/usr/sbin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/oracle/.local/bin:/home/oracle/bin:/home/oracle/bin:/u01/app/oracle/product/19.3/db_1/OPatch:/u01/app/oracle/product/19.3/db_1/bin:/usr/sbin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/oracle/.local/bin:/home/oracle/bin:/home/oracle/bin
+
+
+######FIRST PART: DROP PARTITIONS######
+
+
+sqlplus -S / as sysdba <<EOF  > /home/oracle/drop_partition_log/drop_partitions_`date +\%Y-\%m-\%d`.log
+   set linesize 200;
+   set feedback off;
+   set head off;
+   set echo off;
+   set time off;
+   set timing off;
+   spool /home/oracle/sql_code_for_drop_partitions.sql
+select 'alter table '||table_owner||'.'||table_name||' drop partition '||partition_name||' update global indexes;' from dba_tab_partitions a where table_owner='MIFOSTENANTDEFAULT' 
+and table_name='M_NOTE' and MIFOSTENANTDEFAULT.hv_to_date(a.table_owner, a.table_name, a.partition_name)=trunc(sysdate-68) ;
+
+   spool off;
+   exit;
+EOF
+sqlplus -S / as sysdba <<EOF >> /home/oracle/drop_partition_log/drop_partitions_`date +\%Y-\%m-\%d`.log
+   set linesize 200;
+   set feedback on;
+   set head on;
+   set echo on;
+   set time on;
+   set timing on;
+   @/home/oracle/sql_code_for_drop_partitions.sql
+EOF
+
+
+######SECOND PART: REBUILD INDEXES###############
+
+sqlplus -S / as sysdba <<EOF >> /home/oracle/drop_partition_log/drop_partitions_`date +\%Y-\%m-\%d`.log
+   set linesize 200;
+   set feedback off;
+   set head off;
+   set echo off;
+   set time off;
+   set timing off;
+   spool /home/oracle/sql_code_for_rebuild_indexes.sql
+
+   select 'alter index '||i.index_owner||'.'||i.index_name ||' rebuild partition '||i.PARTITION_NAME||' TABLESPACE '||i.tablespace_name ||' online;' from dba_ind_partitions i, dba_tab_partitions t where t.partition_name=i.partition_name and i.status<>'USABLE';
+
+   select 'ALTER INDEX MIFOSTENANTDEFAULT.'||index_name||' REBUILD online ;' from dba_indexes where owner='MIFOSTENANTDEFAULT' and status='UNUSABLE';
+
+   select 'ALTER INDEX MIFOSTENANTDEFAULT.'||index_name||' REBUILD online ;' from dba_indexes where owner='MIFOSTENANTDEFAULT' and partitioned='NO' and ORPHANED_ENTRIES='YES' and table_name in('M_NOTE');
+
+
+   spool off;
+   exit;
+EOF
+
+sqlplus -S / as sysdba <<EOF >> /home/oracle/drop_partition_log/drop_partitions_`date +\%Y-\%m-\%d`.log
+   set linesize 200;
+   set feedback on;
+   set head on;
+   set echo on;
+   set time on;
+   set timing on;
+   @/home/oracle/sql_code_for_rebuild_indexes.sql
+EOF
+
