@@ -1,0 +1,78 @@
+#gather Partitioned Table :
+
+BEGIN
+  SYS.DBMS_SCHEDULER.CREATE_JOB
+    (
+       job_name        => 'SYS.GATHER_NOPARTITION_UNDER20G'
+      ,start_date      => TO_TIMESTAMP_TZ('2025/09/22 08:55:58.000000 +03:30','yyyy/mm/dd hh24:mi:ss.ff tzh:tzm')
+      ,repeat_interval => 'freq=daily; byhour=2; byminute=30; bysecond=0;'
+      ,end_date        => NULL
+      ,job_class       => 'DEFAULT_JOB_CLASS'
+      ,job_type        => 'PLSQL_BLOCK'
+      ,job_action      => ' with stat as (
+select /*+no_merge Materalized */ dts.OWNER,dts.table_name , dt.PARTITIONED
+from dba_tab_statistics dts , dba_tables dt where (dts.stale_stats='YES' or dts.stale_stats is null) AND dts.TABLE_NAME NOT LIKE '$%' AND dts.OWNER NOT  LIKE '%SYS%' and  dts.owner
+ not in ('XSTRMADMIN','DBSNMP','DBSFWUSER','GSMADMIN_INTERNAL','XDB','OGG') AND dts.OWNER NOT  IN  ('DBSNMP') and dts.owner = dt.owner and dts.table_name = dt.table_name
+)
+select /*+no_merge Materalized */  'EXEC DBMS_STATS.GATHER_TABLE_STATS ( ownname => ''' || ds.owner || ''',tabname =>''' || ds.segment_name || ''',degree=> 10,cascade=>true);' as gather
+from dba_segments ds , stat
+where
+stat.owner = ds.owner
+and stat.table_name = ds.segment_name
+and stat.PARTITIONED = 'NO'
+and ds.bytes <= 20*1024*1024*1024
+group by ds.owner , ds.segment_name , stat.PARTITIONED
+order by 1 desc;
+      '
+      ,comments        => 'Job to Gather Nopartitioned Table under 20 GB'
+    );
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.GATHER_NOPARTITION_UNDER20G'
+     ,attribute => 'RESTARTABLE'
+     ,value     => FALSE);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.GATHER_NOPARTITION_UNDER20G'
+     ,attribute => 'LOGGING_LEVEL'
+     ,value     => SYS.DBMS_SCHEDULER.LOGGING_OFF);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE_NULL
+    ( name      => 'SYS.GATHER_NOPARTITION_UNDER20G'
+     ,attribute => 'MAX_FAILURES');
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE_NULL
+    ( name      => 'SYS.GATHER_NOPARTITION_UNDER20G'
+     ,attribute => 'MAX_RUNS');
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.GATHER_NOPARTITION_UNDER20G'
+     ,attribute => 'STOP_ON_WINDOW_CLOSE'
+     ,value     => FALSE);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.GATHER_NOPARTITION_UNDER20G'
+     ,attribute => 'JOB_PRIORITY'
+     ,value     => 3);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE_NULL
+    ( name      => 'SYS.GATHER_NOPARTITION_UNDER20G'
+     ,attribute => 'SCHEDULE_LIMIT');
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.GATHER_NOPARTITION_UNDER20G'
+     ,attribute => 'AUTO_DROP'
+     ,value     => TRUE);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.GATHER_NOPARTITION_UNDER20G'
+     ,attribute => 'RESTART_ON_RECOVERY'
+     ,value     => FALSE);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.GATHER_NOPARTITION_UNDER20G'
+     ,attribute => 'RESTART_ON_FAILURE'
+     ,value     => FALSE);
+  SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.GATHER_NOPARTITION_UNDER20G'
+     ,attribute => 'STORE_OUTPUT'
+     ,value     => TRUE);
+ SYS.DBMS_SCHEDULER.SET_ATTRIBUTE
+    ( name      => 'SYS.GATHER_NOPARTITION_UNDER20G'
+     ,attribute => 'INSTANCE_ID'
+     ,value     => 2);
+
+  SYS.DBMS_SCHEDULER.ENABLE
+    (name                  => 'SYS.GATHER_NOPARTITION_UNDER20G');
+END;
+/
