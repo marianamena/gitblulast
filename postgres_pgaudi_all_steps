@@ -1,0 +1,77 @@
+step1 :send email to sysops , subject of email: <Postgres Repository related to pgaudit>
+depends on the  version of the database and os ,add repository to server:
+for example : for debian 11 and  postgres vesion 13 ,the repository is:
+
+--https://wiki.postgresql.org/wiki/Apt اطلاعات بیشتر
+https://apt.postgresql.org/pub/repos/apt bullseye-pgdg main
+
+also add ip for databases:
+
+like : 
+--Database IPS
+10.100.5.56     CH-DE-PR-FSPSG01
+172.16.91.10  CH-DE-PR-FSPSG02
+
+
+
+step 2: check the repository is ok or not:(with root)
+
+
+apt search postgresql-13-pgaudit
+ before download,you have to check the dependency for packages:
+
+apt install --download-only -y pkgname
+apt install --assum-no  ./postgres-13-pgadut...(write the full name for package)
+apt download postgresql-13-pgaudit
+apt intsall postgresql-13-pgaudit
+
+when you download the package, the package will be in this place:/etc/apt
+
+step 3:with postgres
+
+backup PostgreSQL.conf and pg_hba.conf 
+
+step 4:with postgres
+
+vim /etc/postgresql/main/postgres.conf
+
+check shared_preload_libraries, if the other package is added,for dependency of packages,the order of the name of package is important:
+ add this line  shared_preload_libraries = 'pgaudit',if it exits ,append 'pgaudit' it.
+
+step 5: with root: restart the postgres:
+
+systemctl restart postgres@13-main.service
+
+then check it:
+systemctl status postgres@13-main.service
+
+step 6: with user postgres:
+login and connect to every database with like :
+psql > \c boc
+
+then CREATE EXTENSION pgaudit;
+check the extention in every database:
+SELECT * FROM pg_extension WHERE extname = 'pgaudit';
+
+step 7 : with user postgres:
+per database 
+run:
+
+alter system set log_destination = 'csvlog';
+alter system set logging_collector = 'on';
+alter system set log_filename='postgresql-%Y-%m-%d_%H%M%S.log';
+alter system set log_connections = 'on';
+alter system set log_rotation_age='7d'; 
+alter system set log_rotation_size =0; 
+ALTER SYSTEM SET pgaudit.log TO 'ddl,  role'; 
+
+then per database:
+select pg_reload_conf();
+
+step 8:
+restart the postgres with root:
+
+systemctl restart postgres@13-main.service
+
+then check it:
+systemctl status postgres@13-main.service
