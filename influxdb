@@ -1,0 +1,55 @@
+influxdb:
+https://docs.influxdata.com/influxdb3/enterprise/install/#download-influxdb-3-enterprise-binaries
+run in Linux ,mac,windows
+
+tar -xvf influxdb3-enterprise-3.8.0_linux_amd64.tar
+curl --silent --location -O https://repos.influxdata.com/influxdata-archive.key
+test -d /usr/share/influxdata-archive-keyring/keyrings || sudo mkdir -p /usr/share/influxdata-archive-keyring/keyrings
+gpg --show-keys --with-fingerprint --with-colons ./influxdata-archive.key 2>&1 \
+| grep -q '^fpr:\+24C975CBA61A024EE1B631787C3D57159FC2F927:$' \
+&& sudo cp ./influxdata-archive.key /usr/share/influxdata-archive-keyring/keyrings/influxdata-archive.asc \
+&& cat <<EOF | sudo tee /etc/yum.repos.d/influxdata.repo
+[influxdata]
+name = InfluxData Repository - Stable
+baseurl = https://repos.influxdata.com/stable/\$basearch/main
+enabled = 1
+gpgcheck = 1
+gpgkey = file:///usr/share/influxdata-archive-keyring/keyrings/influxdata-archive.asc
+EOF
+yum install influxdb3-enterprise
+
+
+# Start the service
+systemctl start influxdb3-enterprise
+
+# View status
+systemctl status influxdb3-enterprise
+
+# View logs
+journalctl --unit influxdb3-enterprise
+
+influxdb3 --version
+influxdb3 3.8.0, revision 83b589b883e8ff958b5f4ff93ba661e06f5c0770
+
+influxdb3
+[root@influxdb1 influxdb3-enterprise-3.8.0]# influxdb3 create token --admin
+
+New token created successfully!
+
+Token: apiv3_ITZzLa4y2Xo8clDBusmYs1PQvYssQF7HE7rXpc3EjpkuIYQbnKuRRJSjtUUr64kSbMJWfR7AkL3i8acEO0rXeQ
+HTTP Requests Header: Authorization: Bearer apiv3_ITZzLa4y2Xo8clDBusmYs1PQvYssQF7HE7rXpc3EjpkuIYQbnKuRRJSjtUUr64kSbMJWfR7AkL3i8acEO0rXeQ
+
+IMPORTANT: Store this token securely, as it will not be shown again.
+
+export INFLUXDB3_AUTH_TOKEN=YOUR_AUTH_TOKEN
+export INFLUXDB3_AUTH_TOKEN=apiv3_ITZzLa4y2Xo8clDBusmYs1PQvYssQF7HE7rXpc3EjpkuIYQbnKuRRJSjtUUr64kSbMJWfR7AkL3i8acEO0rXeQ
+
+[root@influxdb1 influxdb3-enterprise-3.8.0]# influxdb3 show databases --token  apiv3_ITZzLa4y2Xo8clDBusmYs1PQvYssQF7HE7rXpc3EjpkuIYQbnKuRRJSjtUUr64kSbMJWfR7AkL3i8acEO0rXeQ
++---------------+
+| iox::database |
++---------------+
+| _internal     |
++---------------+
+
+
+
