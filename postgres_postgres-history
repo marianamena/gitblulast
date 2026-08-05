@@ -1,0 +1,27 @@
+in postgres home:create .psqlrc file and write this line:
+\set HISTFILE /dev/null
+find / -iname ".psql_history"
+172.16.49.15 centos done:  /var/lib/pgsql/.psqlrc
+172.16.91.24 Debian done: cat /etc/*-release :/var/lib/postgresql/ 
+10.100.5.56  Debian done: cat /etc/*-release :/var/lib/postgresql/ 
+172.16.91.10  done :/var/lib/postgresql/.psqlrc
+172.16.72.6   done
+172.16.1.53   done
+
+
+172.16.1.25   done
+172.16.81.82   done
+1.58 done 
+
+172.16.72.66   done
+172.16.72.67    done     
+172.16.116.66  done
+172.16.116.67 done
+
+
+ALTER SYSTEM SET pgaudit.log TO 'ddl, role';
+
+
+172.16.116.66 ok
+72.66 ok
+91.24
