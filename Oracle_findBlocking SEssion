@@ -1,0 +1,5 @@
+#find Blocking session
+select INST_ID,sid, blocking_session, username, blocking_session_status,
+program, event, seconds_in_wait
+from gv$session t
+ where blocking_session_status = 'VALID';
