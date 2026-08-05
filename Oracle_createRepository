@@ -1,0 +1,34 @@
+#create Local Repository:
+mkdir -p /mnt/ol8
+mount -o loop /root/isofile /mnt/ol8
+mkdir -p /repos/oraclelinux
+
+rsync -av /mnt/ol8 /repo/oraclelinux/
+
+age balai ok nabashe :
+rsync -av /mnt/ol8/AppStream /repos/oraclelinux/ol8/AppStream/
+rsync -av /mnt/ol8/BaseOS /repos/oraclelinux/ol8/BaseOS/
+
+optional:
+yum/dnf install -y createrepo
+createrepo /repos/oraclelinux
+
+
+vi /etc/yum.repo.d/local-ol.repo
+
+[local-ol8-baseos]
+name=OL8 BaseOS 
+baseurl=file:///repo/oraclelinux/ol8/BaseOS
+enabled=1
+gpgcheck=0
+
+[local-ol8-appstream]
+name=OL8 BaseOS
+baseurl=file:///repos/oraclelinux/ol8/AppStream
+enabled=1
+gpgcheck=0
+
+
+check it:
+yum/dnf clean all
+yum/dnf repolist
