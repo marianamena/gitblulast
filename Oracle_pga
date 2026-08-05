@@ -1,0 +1,10 @@
+select *
+from (select instance_number, sql_id, max(pga_sum_mb) pga_max
+from (select instance_number, sample_time, sql_id, round(sum(nvl(pga_allocated, 0))/1024/1024) pga_sum_mb
+from dba_hist_active_sess_history
+where sample_time between to_timestamp('&begin_timestamp', 'yyyy/mm/dd hh24:mi') and
+to_timestamp('&end_timestamp', 'yyyy/mm/dd hh24:mi')
+group by instance_number, sample_time, sql_id)
+group by instance_number, sql_id
+order by pga_max desc)
+where rownum <= 10;
