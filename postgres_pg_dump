@@ -1,0 +1,90 @@
+pg_dump
+ pg_dump --schema public -f admin_users.dmp --table=admin_users  -d linotp_db  
+ pg_dump --schema public -f audit.dmp --table=audit -d linotp_db
+ pg_dump --schema public -f challenges.dmp --table=challenges -d linotp_db
+ pg_dump --schema public -f imported_user.dmp --table=imported_user -d linotp_db
+pg_dump --schema public -f logging_config.dmp --table=logging_config -d linotp_db
+
+
+
+
+
+ pg_dump --schema public -f Config.dmp --table=Config -d linotp_db  --
+ pg_dump --schema public -f REPORTING.dmp --table=REPORTING -d linotp_db -- 
+ pg_dump --schema public -f Realm.dmp --table=Realm -d linotp_db -- 
+ pg_dump --schema public -f Token.dmp --table=Token -d linotp_db --
+ pg_dump --schema public -f TokenRealm.dmp --table=TokenRealm -d linotp_db --
+ 
+ pg_dump --schema public -f Config.dmp --table=Config -d linotp_db  --schema-only 
+
+
+
+
+ pg_dump -d linotp_db  -t mytab  > db.sql
+
+
+linotp_db=# \dt+
+                            List of relations
+ Schema |      Name      | Type  |   Owner    |    Size    | Description
+--------+----------------+-------+------------+------------+-------------
+ public | Config         | table | linotpuser | 64 kB      |
+ public | REPORTING      | table | linotpuser | 8192 bytes |
+ public | Realm          | table | linotpuser | 8192 bytes |
+ public | Token          | table | linotpuser | 80 kB      |
+ public | TokenRealm     | table | linotpuser | 40 kB      |
+ public | admin_users    | table | linotpuser | 8192 bytes |
+ public | audit          | table | linotpuser | 27 MB      |
+ public | challenges     | table | linotpuser | 8192 bytes |
+ public | imported_user  | table | linotpuser | 48 kB      |
+ public | logging_config | table | linotpuser | 0 bytes    |
+
+
+pg_dump  -d linotp_db  -t Config -Fc  -f Config.dmp
+pg_dump  -d linotp_db  -t REPORTING  -Fc  -f REPORTING.dmp
+pg_dump  -d linotp_db  -t Realm -Fc  -f Realm.dmp
+pg_dump  -d linotp_db  -t Token -Fc  -f Token.dmp
+pg_dump  -d linotp_db  -t TokenRealm -Fc  -f TokenRealm.dmp
+pg_dump  -d linotp_db  -t admin_users -Fc  -f admin_users.dmp
+pg_dump  -d linotp_db  -t audit -Fc  -f audit.dmp
+pg_dump  -d linotp_db  -t challenges -Fc  -f challenges.dmp
+pg_dump  -d linotp_db  -t imported_user -Fc  -f imported_user.dmp
+pg_dump  -d linotp_db  -t logging_config -Fc  -f logging_config.dmp
+
+ pg_dump --schema public -f audit.dmp --table=audit -d linotp_db
+pg_dump --schema public -f audit.dmp --table=audit -d  linotp_db
+,REPORTING,Realm,Token,TokenRealm,admin_users,audit,challenges,imported_user,logging_config 
+pg_dump -t Config  linotp_db > Config.dmp
+pg_dump -t REPORTING linotp_db > REPORTING.sql
+pg_dump -t Realm linotp_db > Realm.sql
+pg_dump -t Token linotp_db > dToken.sql
+pg_dump -t TokenRealm linotp_db > TokenRealm.sql
+pg_dump -t admin_users linotp_db > admin_users.sql
+pg_dump -t audit linotp_db > audit.sql
+pg_dump -t challenges linotp_db > challenges.sql
+pg_dump -t imported_user linotp_db > imported_user.sql
+pg_dump -t logging_config linotp_db > logging_config.sql
+
+export: pg_dump --schema public -f public.dmp -d linotp_db
+
+
+drop user public
+
+
+pg_dump --schema public -f public.dmp -d linotp_db
+
+pg_restore -d linotp_db --schema public     public.dmp
+
+ challenges
+ Config
+ logging_config
+ imported_user
+ REPORTING
+ admin_users
+ Token
+ TokenRealm
+ Realm
+ audit
+
+
+pg_restore -d linotp_db --table Config Config.sql
+
