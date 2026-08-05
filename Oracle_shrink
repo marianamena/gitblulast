@@ -1,0 +1,14 @@
+
+1.SELECT FILE_NAME "FILE NAME" , hwm "HIGH WATER MARK" , blocks "Total Blocks", blocks-hwm+1 "Shrinage Possible", (((blocks-hwm+1)*8192)/1024/1024/1024) "Shrinkage Possible (GB)"
+ from dba_data_files a,(select file_id ,max(block_id+blocks) hwm from dba_extents group by file_id) b where a.file_id = b.file_id;
+
+
+
+2.selecT segment_name ,  SUM(BYTES)/1024/1024/1024 from dba_segments  where owner='TELEGRAM'  and segment_type not in ('TABLE') group by segment_name ;
+
+3.alter database datafile '/u01/oracle/oradata/SOCIALDB/users10.dbf' resize 26G;
+
+selecT  SUM(BYTES) from dba_segments; where owner='TELEGRAM' ;
+60,723,298,304
+SELECT SUM(BYTES)/1024/1024/1024 SIZE_IN_MB FROM DBA_DATA_FILES;
+461567.875
