@@ -1,0 +1,59 @@
+1.
+create table with 
+
+create table MENA.CARD as select * from account.card
+(index does not exists)
+
+2. create index:
+CREATE  INDEX MENA.card_copy ON mena.card_copy(ID)
+
+3. in sqlplus
+insert colmun in mena.card:
+DECLARE
+  TYPE t_my_table IS TABLE OF mena.card_copy%ROWTYPE;
+  my_table_array t_my_table;
+BEGIN
+  -- Populate the my_table_array collection with data
+  SELECT *
+  BULK COLLECT INTO my_table_array
+  FROM mena.card_copy
+  fetch first 200 rows only;
+
+  -- Insert the data into the my_table table
+  FOR i IN 1..200
+  loop
+    insert into mena.card_copy 
+(ID,ACCOUNT_NUMBER ,CID,EMBOSSED_NAME,EXP,MASKED_PAN,PERSON_NAME,PAN,PRODUCT_NAME,STATE,STATUS,UPDATED_AT,CREATED_AT,IS_DELETED,OUTBOX_KAFKA_EVENT_SENT)
+    VALUES (my_table_array(i).ID,my_table_array(i).ACCOUNT_NUMBER,my_table_array(i).CID,my_table_array(i).EMBOSSED_NAME,my_table_array(i).EXP,my_table_array(i).MASKED_PAN,my_table_array(i).PERSON_NAME,my_table_array(i).PAN,my_table_array(i).PRODUCT_NAME,my_table_array(i).STATE,my_table_array(i).STATUS,my_table_array(i).UPDATED_AT,my_table_array(i).CREATED_AT,my_table_array(i).IS_DELETED,my_table_array(i).OUTBOX_KAFKA_EVENT_SENT);
+    commit ;
+  end loop; 
+END;
+/ 
+
+
+4.repeat it for 400,800,1600,...
+
+in sqlplus:
+set time on;
+set timing on;
+
+5.check count(*):
+select count(*) from mena.card_copy
+
+6.select tablespace_name,table_name from all_tables where owner = 'MENA'
+ ALTER TABLE mena.card_copy MOVE ONLINE TABLESPACE B;
+
+check index:
+SELECT index_name, status FROM user_indexes ORDER BY 1;
+
+
+7.add item (automated time)
+ALTER TABLE mena.card_copy ADD (date_column TIMESTAMP(6) DEFAULT systimestamp)
+
+you know the time of every record.
+
+
+
+
+
+
