@@ -1,0 +1,28 @@
+
+
+
+rman target sys/syspassOracle123@syncdb10 auxiliary sys/syspassOracle123@warsync log=/u01/logs/duplicate_log/log_duplicate.log
+run{
+    ALLOCATE CHANNEL c1 DEVICE TYPE DISK;
+    ALLOCATE  CHANNEL c2 DEVICE TYPE DISK;
+      ALLOCATE  CHANNEL c3 DEVICE TYPE DISK;
+      ALLOCATE  CHANNEL c4 DEVICE TYPE DISK;
+      ALLOCATE  CHANNEL c5 DEVICE TYPE DISK;
+      ALLOCATE  CHANNEL c6 DEVICE TYPE DISK;
+
+    ALLOCATE AUXILIARY CHANNEL c7 DEVICE TYPE DISK;
+    ALLOCATE AUXILIARY CHANNEL c8 DEVICE TYPE DISK;
+      ALLOCATE AUXILIARY CHANNEL c9 DEVICE TYPE DISK;
+      ALLOCATE AUXILIARY CHANNEL c10 DEVICE TYPE DISK;
+      ALLOCATE AUXILIARY CHANNEL c11 DEVICE TYPE DISK;
+      ALLOCATE AUXILIARY CHANNEL c12 DEVICE TYPE DISK;
+DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER NOFILENAMECHECK;
+}
+
+
+
+agar ye ip jaded add beshe 
+maslan vase 100.40 ma ye ens162 add kardim b ip 172.16.54.10
+
+1.tnsnames.ora ro baraye har 2 bayad ok krad va host :172.16.54.10 va sid=syncdb va ur=a
+2. baraye 100.40 bayad file listener.ora ip ro add kard: va bad realad ro bezanim lsnrctl reload ba grid
