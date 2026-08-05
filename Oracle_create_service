@@ -1,0 +1,4 @@
+show  parameter service
+alter system set service_names='AUXPROD, CONTACT,KYC_CORE,KYC,CIO';
+
+edit tnsnames.ora
