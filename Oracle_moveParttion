@@ -1,0 +1,9 @@
+ MOVE PARTITION
+
+select 'ALTER TABLE '||owner||'.'||segment_name||' MOVE PARTITION '|| partition_name ||'  TABLESPACE OTHERS_TBS ONLINE UPDATE INDEXES parallel 4;'  FROM dba_segments where TABLESPACE_NAME='CURRTRANS'
+and segment_type='TABLE PARTITION' 
+
+
+select 'ALTER index '||owner||'.'||segment_name||'  REBUILD PARTITION '|| partition_name ||' TABLESPACE OTHERS_TBS online   parallel 4   ;'  FROM dba_segments where TABLESPACE_NAME='CURRTRANS'
+and segment_type='INDEX PARTITION'
+
