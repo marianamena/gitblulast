@@ -1,0 +1,151 @@
+  change clock in linux:
+  hwclock --set --date="08/20/22 13:20:20"
+DBA Commands:
+#######################################
+1.Get ASM disk info
+
+select name, path, header_status, total_mb free_mb, trunc(bytes_read/1024/1024) read_mb, trunc(bytes_written/1024/1024) write_mb from v$asm_disk;
+
+2.Get ASM disk group details
+SELECT name, free_mb, total_mb, free_mb/total_mb*100 as percentage FROM v$asm_diskgroup;
+
+3.Drop an ASM disk:
+-----Dropping one disk:
+alter diskgroup data drop disk DATA_ASM0001;
+-----Dropping multiple disk:
+alter diskgroup data drop disk DATA_ASM0001,DATA_ASM00002, DATA_ASM0003 rebalance power 100;
+---- Monitoring the rebalance operation:
+select * from v$asm_operation;
+
+
+4.Monitor ASM disk rebalance
+set pagesize 299
+set lines 2999
+select GROUP_NUMBER,OPERATION,STATE,POWER, ACTUAL,ACTUAL,EST_MINUTES from gv$asm_operation;
+
+5.Execute runcluvfy.sh for RAC precheck
+-- Runcluvfy.sh script is available after unzipping the grid software.
+Syntax –
+./runcluvfy.sh stage -pre crsinst -n host1,host2,host3 -verbose
+./runcluvfy.sh stage -pre crsinst -n classpredb1,classpredb2 -verbose
+
+
+6.Copy ASM file to remote ASM instance
+--- ASM file can be copied to remote asm instance(diskgroup) using asmcmd command
+ASMCMD> cp --port 1521 s_srv_new21.dbf sys/oracle@172.20.17.69.+ASM1:+ARCL/s_srv_new21.dbf
+
+
+7.Mount/dismount ASM disk groups
+-- For mount a diskgroup,(This is instance specific, for mounting on all nodes, run the same on all nodes)
+SQL>alter diskgroup DATA mount;
+or
+asmcmd>mount DATA
+-- For umount a diskgroup,(This is instance specific, for unmounting on all nodes, run the same on all nodes)
+SQL>alter diskgroup DATA dismount;
+Or
+asmcmd>umount DATA
+-- To mount/Dismount all the diskgroups
+SQL>alter diskgroup ALL mount;
+SQL>alter diskgroup ALL dismount;
+
+
+8.creating flash recovery:
+
+alter system set log_archive_duplex_dest = '';
+alter system set log_archive_dest = '';
+alter system set db_recovery_size = 4G;
+mkdir -p /home/oracle/flasharea
+chown oracle:oinstall /home/oracle/flasharea
+alter system set db_recovery_dest = '/home/oracle/flasharea';
+
+9.change the archive  log location:
+alter system set log_archive_dest_1 = 'location=/dbarch';  ( in guard ,it is for primary)
+alter system set log_archive_dest_2 = 'location=/dbarch';   ( in guard,it is for first standby)
+
+
+10.increase fra size:
+
+---alter system set db_recovery_file_dest_size = 10G;
+---remove restore point: select * from v$restore_point
+drop restore point x;
+--- make flashback off
+alter database flashback off;
+select flashback_on from v$dataabase;
+---- delete archivelog all;
+
+
+11.find size of fra:
+select * from v$recovery_file_dest;
+select  * from v$flash_recovery_area_usage;
+
+
+12.. Configuring Archived Redo Logs to Go to FRA
+
+
+1.alter system set log_archive_dest_1 = 'LOCATION=USE_DB_RECOVERY_FILE_DEST';
+2.alter system set log_archive_dest_state_1 = enable;
+check it with:
+archive log list;
+
+SQL>select name from v$archived_log order by completion_time;
+
+
+
+13.Placing Online Redo Log Files in FRA
+check db_create_online_log_dest_1 and db_create_online_log_dest_2
+
+if it is null,means it is in fra
+
+check :
+QL> select member from v$logfile where group# = 1;
+
+14.add or remove logfile group:
+alter database add logfile group 4;
+alter database drop logfile group 4;
+
+
+15.check user privilledege:
+select * from session_privs;
+
+
+
+
+16.size of datafiles:
+ select sum(bytes)/1024/1024 from dba_data_files;
+
+
+17.find size of archive log generated for a day:
+select count(1), avg(blocks*block_size)/1024 MB from v$archived_log where completion_time between sysdate-1 and sysdate
+
+
+18.rebuild control file:
+alter database backup controlfile to trace
+
+
+19.log for rman:
+spool log to '/tmp/rman/backuplog.f';
+backup datafile 1;
+spool log off;
+
+
+
+ya rman cmdfile=' ' log=' ' target / ...
+
+
+20.check files in asmcmd
+select  f.group_number, f.file_number, bytes, space, space/(1024*1024) "InMB", a.name "Name"
+from v$asm_file f, v$asm_alias a
+where f.group_number=a.group_number and f.file_number=a.file_number
+and system_created='Y'
+order by f.group_number, f.file_number;
+
+
+21.check job status:
+
+select job_name, owner, enabled from dba_scheduler_jobs;
+
+disable job:
+execute dbms_scheduler.disable('owner.job');
+
+
+
